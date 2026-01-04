@@ -3,245 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PayLink Enterprise V8</title>
+    <title>ระบบชำระเงินปลอดภัย V9</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lazywasabi/thai-bank-icons@master/dist/css/thai-bank-icons.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         /* =========================================
-           1. CORE VARIABLES & THEME
+           2. CSS VARIABLES & THEME (ตั้งค่าสี)
            ========================================= */
         :root {
-            --primary: #4f46e5;
-            --primary-glow: rgba(79, 70, 229, 0.5);
-            --secondary: #ec4899;
-            --bg-dark: #0f172a;
-            --glass-bg: rgba(15, 23, 42, 0.75);
+            /* สีหลักของระบบ */
+            --bg-main: #020617;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: 1px solid rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --neon-glow: 0 0 20px rgba(79, 70, 229, 0.4);
+
+            /* สีประจำธนาคาร (Official Colors) */
+            --kb-color: #138f2d; /* กสิกร */
+            --scb-color: #4e2e7f; /* ไทยพาณิชย์ */
+            --ktb-color: #1ba5e1; /* กรุงไทย */
+            --bbl-color: #1e4598; /* กรุงเทพ */
+            --gsb-color: #eb198d; /* ออมสิน */
+            --ttb-color: #0050f0; /* ทีทีบี */
+            --bay-color: #fec43b; /* กรุงศรี */
+            --tru-color: #ff5c00; /* ทรูมันนี่ */
+            --prompt-color: #1c3d6e; /* พร้อมเพย์ */
         }
 
+        /* ตั้งค่าพื้นฐาน */
         body {
             font-family: 'Prompt', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
+            /* พื้นหลังแบบเคลื่อนไหว */
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 100%, hsla(225,39%,20%,1) 0, transparent 50%);
         }
 
-        /* Canvas Background */
-        #particle-canvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
-        }
+        /* ----------------------------------------------------
+           3. UI COMPONENTS (ดีไซน์ปุ่มและการ์ด)
+           ---------------------------------------------------- */
 
-        /* =========================================
-           2. UI COMPONENTS (GLASSMORPHISM)
-           ========================================= */
-        .glass-panel {
+        /* การ์ดแก้ว (Glass Panel) */
+        .aurora-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: var(--glass-border);
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
+        /* อินพุตแบบแก้ว */
         .glass-input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
             color: white;
-            padding: 12px 16px;
-            transition: all 0.3s ease;
+            padding: 14px;
+            border-radius: 12px;
+            width: 100%;
+            transition: 0.3s;
         }
         .glass-input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary-glow);
-            background: rgba(0, 0, 0, 0.5);
+            border-color: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+            background: rgba(0,0,0,0.6);
         }
 
-        /* Buttons */
-        .btn-modern {
-            background: linear-gradient(135deg, var(--primary), #4338ca);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 500;
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-modern:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px var(--primary-glow);
-            filter: brightness(1.1);
-        }
-        .btn-modern:active { transform: translateY(0); }
-
-        /* =========================================
-           3. BANK CARD STYLES (PREMIUM)
-           ========================================= */
+        /* ====================================================
+           4. BANK CARD STYLING (หัวใจสำคัญของ V9)
+           เปลี่ยนสีตามธนาคารแบบอัตโนมัติ
+           ==================================================== */
         .bank-card {
-            background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            position: relative;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
             border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 18px;
-            margin-bottom: 15px;
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            overflow: hidden;
         }
-        
+
+        /* แถบสีด้านซ้าย */
         .bank-card::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; bottom: 0;
-            width: 4px;
-            background: var(--primary);
-            border-radius: 4px 0 0 4px;
-            opacity: 0;
-            transition: 0.3s;
+            left: 0; top: 0; bottom: 0;
+            width: 6px;
+            background: var(--bank-theme); /* รับค่าสีจาก Inline Style */
+            box-shadow: 0 0 15px var(--bank-theme);
         }
 
+        /* เอฟเฟกต์ตอนชี้เมาส์ */
         .bank-card:hover {
+            transform: translateX(5px) translateY(-2px);
             background: rgba(255,255,255,0.08);
-            transform: translateX(5px);
-            border-color: rgba(255,255,255,0.2);
+            border-color: var(--bank-theme);
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3);
         }
-        .bank-card:hover::before { opacity: 1; }
 
-        .bank-icon-box {
-            width: 54px; height: 54px;
-            border-radius: 14px;
+        /* กล่องไอคอนธนาคาร */
+        .bank-icon-wrapper {
+            width: 55px; height: 55px;
             background: white;
+            border-radius: 14px;
             display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            margin-right: 16px;
+            font-size: 32px;
+            margin-right: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 2;
         }
         
-        .bank-icon-box i { font-size: 38px; } /* Adjust icon size */
-
-        .copy-badge {
-            font-size: 10px;
+        /* ปุ่ม COPY (ดีไซน์ใหม่) */
+        .btn-copy-action {
             background: rgba(255,255,255,0.1);
-            padding: 4px 8px;
-            border-radius: 20px;
-            color: var(--text-muted);
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
             transition: 0.3s;
         }
-        .bank-card:hover .copy-badge {
-            background: var(--primary);
+        .bank-card:hover .btn-copy-action {
+            background: var(--bank-theme);
             color: white;
+            border-color: var(--bank-theme);
+            box-shadow: 0 0 10px var(--bank-theme);
         }
 
-        /* =========================================
-           4. VIEW CONTROLLER
-           ========================================= */
-        section { display: none !important; opacity: 0; transition: opacity 0.4s ease-in-out; }
-        section.active-view { display: block !important; opacity: 1; animation: fadeIn 0.5s forwards; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* =========================================
-           5. UTILITIES
-           ========================================= */
-        .loading-overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: var(--bg-dark); z-index: 9999;
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
+        /* ====================================================
+           5. ACTION BUTTONS (ปุ่มสวยงาม)
+           ==================================================== */
+        .btn-aurora {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            border: none;
+            padding: 14px;
+            border-radius: 16px;
+            color: white;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+            width: 100%;
         }
+        .btn-aurora:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.6);
+            filter: brightness(1.1);
+        }
+        .btn-aurora::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+            opacity: 0;
+            transform: scale(0.5);
+            transition: 0.4s;
+        }
+        .btn-aurora:active::after { opacity: 1; transform: scale(1); }
+
+        .btn-secondary-glass {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #cbd5e1;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            text-decoration: none;
+        }
+        .btn-secondary-glass:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-color: rgba(255,255,255,0.3);
+        }
+
+        /* หน้าจอ */
+        section { display: none; opacity: 0; transition: opacity 0.5s ease; }
+        section.active-view { display: block; opacity: 1; animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
         
-        .admin-sidebar {
-            background: rgba(15, 23, 42, 0.9);
-            border-right: var(--glass-border);
-            min-height: 100vh;
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Mobile tweaks */
-        @media (max-width: 991px) {
-            .admin-container { flex-direction: column; }
-            .admin-sidebar { min-height: auto; padding: 15px; border-right: none; border-bottom: var(--glass-border); }
+        /* สถานะหมดอายุ */
+        .expired-bg {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.4);
         }
     </style>
 </head>
 <body>
 
-    <canvas id="particle-canvas"></canvas>
-
-    <div id="loader" class="loading-overlay">
-        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
-        <div class="mt-3 text-white-50 font-monospace">INITIALIZING V8 SYSTEM...</div>
+    <div id="app-loader" class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-dark z-3" style="z-index: 9999;">
+        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+        <div class="text-white-50 font-monospace">กำลังเข้าสู่ระบบปลอดภัย...</div>
     </div>
 
-    <section id="view-client" class="py-5">
+    <section id="view-client" class="py-4">
         <div class="container">
             <div class="row justify-content-center">
-                <div class="col-lg-5 col-md-8">
+                <div class="col-lg-5 col-md-7">
                     
-                    <div class="glass-panel p-4 p-md-5 position-relative overflow-hidden">
-                        <div class="text-center mb-5 position-relative z-1">
-                            <div class="d-inline-block p-1 rounded-circle bg-gradient-to-tr from-primary to-secondary mb-3" style="background: linear-gradient(45deg, var(--primary), var(--secondary));">
-                                <div class="bg-dark rounded-circle p-3">
-                                    <i class="fas fa-shield-alt fa-3x text-white"></i>
-                                </div>
+                    <div class="aurora-card p-4 p-md-5 position-relative overflow-hidden">
+                        
+                        <div class="text-center mb-5">
+                            <div class="d-inline-flex p-3 rounded-circle bg-white bg-opacity-10 mb-3 shadow-lg">
+                                <i class="fas fa-shield-halved fa-3x text-info"></i>
                             </div>
-                            <h2 id="client-name-display" class="fw-bold mb-1">...</h2>
-                            <p class="text-white-50 small text-uppercase tracking-wider">Secure Payment Gateway</p>
-                        </div>
-
-                        <div id="client-content-area" class="position-relative z-1">
-                            <div class="text-center text-white-50 py-5">
-                                <div class="spinner-grow spinner-grow-sm text-primary"></div> กำลังโหลดข้อมูลบัญชี...
+                            <h3 id="client-name" class="fw-bold mb-1 text-white">...</h3>
+                            <div class="d-inline-block px-3 py-1 rounded-pill bg-success bg-opacity-25 text-success border border-success border-opacity-25 small mt-2">
+                                <i class="fas fa-check-circle me-1"></i> ยืนยันตัวตนแล้ว
                             </div>
                         </div>
 
-                        <div id="client-actions" class="mt-4 pt-3 border-top border-white border-opacity-10 position-relative z-1">
-                            <a id="btn-contact-slip" href="#" target="_blank" class="btn btn-modern w-100 mb-3 shadow-lg">
-                                <i class="fab fa-facebook-messenger me-2"></i> แจ้งสลิปการโอน
+                        <div id="bank-list-area" class="mb-4">
+                            </div>
+
+                        <div id="active-actions">
+                            <a id="btn-contact-main" href="#" target="_blank" class="btn-aurora text-decoration-none d-flex justify-content-center align-items-center gap-2 mb-3">
+                                <i class="fab fa-facebook-messenger fa-lg"></i> แจ้งสลิปการโอนเงิน
                             </a>
                             
-                            <div class="text-center">
-                                <a id="btn-upsell" href="#" target="_blank" class="text-decoration-none text-white-50 small">
-                                    <i class="fas fa-code me-1"></i> สนใจทำระบบรับเงินแบบนี้?
+                            <div class="text-center mt-4 pt-3 border-top border-white border-opacity-10">
+                                <a id="btn-upsell" href="#" target="_blank" class="btn-secondary-glass">
+                                    <i class="fas fa-bolt me-1 text-warning"></i> สนใจทำระบบแบบนี้?
                                 </a>
                             </div>
                         </div>
 
-                        <div id="expired-overlay" class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-95 d-none flex-column justify-content-center align-items-center z-3 text-center p-4">
+                        <div id="expired-state" class="d-none text-center p-4 rounded-4 expired-bg">
                             <i class="fas fa-lock fa-4x text-danger mb-3"></i>
-                            <h3 class="fw-bold text-danger">ลิงก์หมดอายุ</h3>
-                            <p class="text-white-50 mb-4">ลิงก์ชำระเงินนี้หมดอายุการใช้งานแล้ว<br>กรุณาติดต่อเจ้าหน้าที่เพื่อขอลิงก์ใหม่</p>
-                            <a id="btn-contact-expired" href="#" target="_blank" class="btn btn-outline-light rounded-pill px-4">
+                            <h4 class="fw-bold text-danger">ลิงก์หมดอายุแล้ว</h4>
+                            <p class="text-white-50 mb-4 small">ลิงก์ชำระเงินนี้ปิดใช้งานอัตโนมัติ<br>กรุณาขอลิงก์ใหม่จากเจ้าหน้าที่</p>
+                            <a id="btn-renew" href="#" target="_blank" class="btn btn-outline-light rounded-pill px-4 w-100">
                                 ติดต่อเจ้าหน้าที่
                             </a>
                         </div>
 
-                        <div class="text-center mt-4">
-                            <small class="text-white-50 opacity-25" style="cursor: default; user-select: none;" onclick="sys.triggerLogin()">
-                                Powered by PayLink V8 Enterprise
-                            </small>
+                        <div class="text-center mt-3">
+                            <span class="opacity-0 user-select-none" onclick="app.secretKnock()" style="cursor:default">.</span>
                         </div>
 
                     </div>
-
                 </div>
             </div>
         </div>
@@ -249,154 +275,144 @@
 
     <section id="view-login">
         <div class="d-flex justify-content-center align-items-center vh-100 px-3">
-            <div class="glass-panel p-5 text-center" style="max-width: 450px; width: 100%;">
+            <div class="aurora-card p-5 w-100 text-center" style="max-width: 420px;">
                 <div class="mb-4">
-                    <i class="fas fa-user-shield fa-3x text-primary"></i>
+                    <i class="fas fa-user-astronaut fa-4x text-primary"></i>
                 </div>
-                <h3 class="fw-bold mb-4">Admin Authentication</h3>
-                
-                <form onsubmit="sys.handleAdminLogin(event)">
-                    <div class="form-floating mb-3">
-                        <input type="email" class="form-control bg-transparent text-white border-secondary" id="admin-email" placeholder="name@example.com" required>
-                        <label class="text-white-50">Email Address</label>
+                <h4 class="fw-bold mb-4">เข้าสู่ระบบจัดการ</h4>
+                <form onsubmit="app.login(event)">
+                    <div class="mb-3 text-start">
+                        <label class="small text-white-50 ms-2 mb-1">อีเมลแอดมิน</label>
+                        <input type="email" id="log-email" class="glass-input" required placeholder="admin@email.com">
                     </div>
-                    <div class="form-floating mb-4">
-                        <input type="password" class="form-control bg-transparent text-white border-secondary" id="admin-pass" placeholder="Password" required>
-                        <label class="text-white-50">Secure Password</label>
+                    <div class="mb-4 text-start">
+                        <label class="small text-white-50 ms-2 mb-1">รหัสผ่าน</label>
+                        <input type="password" id="log-pass" class="glass-input" required placeholder="••••••••">
                     </div>
-                    <button type="submit" class="btn btn-modern w-100 py-3">Access Dashboard</button>
-                    <button type="button" onclick="sys.goto('view-client')" class="btn btn-link text-white-50 mt-3 text-decoration-none">Back to Site</button>
+                    <button class="btn-aurora w-100 mb-3">เข้าสู่ระบบ</button>
+                    <button type="button" onclick="window.location.reload()" class="btn btn-link text-white-50 text-decoration-none">กลับหน้าหลัก</button>
                 </form>
             </div>
         </div>
     </section>
 
     <section id="view-dashboard">
-        <div class="d-flex admin-container">
-            
-            <div class="admin-sidebar p-4 d-flex flex-column" style="width: 280px; flex-shrink: 0;">
-                <div class="d-flex align-items-center gap-3 mb-5">
-                    <div class="bg-primary rounded p-2"><i class="fas fa-cube text-white"></i></div>
-                    <div>
-                        <h5 class="fw-bold m-0">PayLink</h5>
-                        <small class="text-white-50" style="font-size:0.7em;">ENTERPRISE V8</small>
-                    </div>
-                </div>
-
-                <nav class="nav flex-column gap-2 flex-grow-1">
-                    <button class="btn btn-outline-light border-0 text-start active" onclick="sys.switchTab('clients', this)">
-                        <i class="fas fa-users me-2 w-25"></i> จัดการลูกค้า
-                    </button>
-                    <button class="btn btn-outline-light border-0 text-start" onclick="sys.switchTab('settings', this)">
-                        <i class="fas fa-sliders-h me-2 w-25"></i> ตั้งค่าระบบ
-                    </button>
-                </nav>
-
-                <div class="mt-auto pt-4 border-top border-white border-opacity-10">
-                    <button onclick="sys.logout()" class="btn btn-danger w-100 rounded-pill">
-                        <i class="fas fa-sign-out-alt me-2"></i> Log Out
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex-grow-1 p-4" style="overflow-y: auto; height: 100vh;">
+        <div class="container-fluid p-0">
+            <div class="row g-0">
                 
-                <div id="tab-clients" class="fade-in">
-                    <div class="glass-panel p-4 mb-4">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-6">
-                                <label class="text-white-50 small mb-2">ค้นหาข้อมูล</label>
+                <div class="col-lg-2 col-md-3 bg-black bg-opacity-50 min-vh-100 border-end border-white border-opacity-10 d-none d-md-block">
+                    <div class="p-4">
+                        <div class="d-flex align-items-center gap-2 mb-5 text-primary">
+                            <i class="fas fa-cube fa-2x"></i>
+                            <span class="fw-bold fs-5">PayLink V9</span>
+                        </div>
+                        <div class="nav flex-column gap-2">
+                            <button onclick="app.tab('clients')" class="btn btn-outline-light border-0 text-start active-nav">
+                                <i class="fas fa-users me-2"></i> ลูกค้าทั้งหมด
+                            </button>
+                            <button onclick="app.tab('settings')" class="btn btn-outline-light border-0 text-start">
+                                <i class="fas fa-sliders me-2"></i> ตั้งค่าระบบ
+                            </button>
+                        </div>
+                        <div class="mt-5 pt-5 border-top border-white border-opacity-10">
+                            <button onclick="app.logout()" class="btn btn-danger w-100 rounded-pill">
+                                <i class="fas fa-power-off me-2"></i> ออกจากระบบ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-10 col-md-9 p-4">
+                    <div class="d-md-none d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold m-0">PayLink V9</h4>
+                        <button onclick="app.logout()" class="btn btn-sm btn-danger">ออก</button>
+                    </div>
+
+                    <div id="tab-clients" class="fade-in">
+                        <div class="aurora-card p-4 mb-4">
+                            <h5 class="mb-3 border-bottom border-white border-opacity-10 pb-2">สร้างลูกค้าใหม่</h5>
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <input id="new-name" class="glass-input" placeholder="ชื่อลูกค้า / ร้านค้า">
+                                </div>
+                                <div class="col-md-2 col-6">
+                                    <input id="new-days" type="number" class="glass-input text-center" value="30" placeholder="วัน">
+                                </div>
+                                <div class="col-md-5 col-6">
+                                    <button onclick="app.addClient()" class="btn-aurora py-3"><i class="fas fa-plus me-2"></i> สร้างลิงก์</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <input onkeyup="app.filter()" id="search-box" class="glass-input w-100" placeholder="🔍 ค้นหาลูกค้า...">
+                        </div>
+
+                        <div id="client-grid" class="row g-3">
+                            </div>
+                    </div>
+
+                    <div id="tab-settings" class="d-none fade-in">
+                        <div class="aurora-card p-5" style="max-width: 600px;">
+                            <h4 class="mb-4">ตั้งค่าการติดต่อ</h4>
+                            <div class="mb-4">
+                                <label class="text-white-50 mb-2">ลิงก์ Social Media (สำหรับปุ่มติดต่อ)</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-dark border-secondary text-white"><i class="fas fa-search"></i></span>
-                                    <input type="text" id="search-client" onkeyup="sys.filterClients()" class="form-control bg-dark text-white border-secondary" placeholder="พิมพ์ชื่อลูกค้า...">
+                                    <span class="input-group-text bg-dark border-secondary text-white"><i class="fab fa-line"></i></span>
+                                    <input id="conf-fb" class="glass-input rounded-0 rounded-end" placeholder="https://line.me/ti/p/...">
                                 </div>
+                                <small class="text-white-50">ลิงก์นี้จะใช้กับทุกปุ่มในหน้าลูกค้า</small>
                             </div>
-                            <div class="col-md-6">
-                                <label class="text-white-50 small mb-2">เพิ่มลูกค้าใหม่ (Auto Gen Code)</label>
-                                <div class="d-flex gap-2">
-                                    <input id="new-client-name" class="form-control bg-dark text-white border-secondary" placeholder="ชื่อลูกค้า">
-                                    <input id="new-client-days" type="number" class="form-control bg-dark text-white border-secondary text-center" value="30" style="width: 80px;" placeholder="วัน">
-                                    <button onclick="sys.addClient()" class="btn btn-primary"><i class="fas fa-plus"></i></button>
-                                </div>
-                            </div>
+                            <button onclick="app.saveConf()" class="btn btn-success px-5 py-2 rounded-pill">บันทึกข้อมูล</button>
                         </div>
                     </div>
 
-                    <div id="client-grid-container" class="row g-4">
-                        </div>
                 </div>
-
-                <div id="tab-settings" class="d-none fade-in">
-                    <div class="glass-panel p-5" style="max-width: 800px;">
-                        <h4 class="fw-bold mb-4 border-bottom border-secondary pb-3">System Configuration</h4>
-                        
-                        <div class="mb-4">
-                            <label class="form-label text-white-50">Social Media Link (สำหรับปุ่มติดต่อ)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary text-white"><i class="fab fa-line"></i></span>
-                                <input type="text" id="config-contact-link" class="form-control bg-dark text-white border-secondary p-3" placeholder="https://line.me/ti/p/...">
-                            </div>
-                            <div class="form-text text-white-50">ลิงก์นี้จะใช้สำหรับปุ่ม "แจ้งสลิป", "สนใจระบบ", และ "ติดต่อแอดมิน"</div>
-                        </div>
-
-                        <button onclick="sys.saveConfig()" class="btn btn-success px-4 py-2">
-                            <i class="fas fa-save me-2"></i> บันทึกการตั้งค่า
-                        </button>
-                    </div>
-                </div>
-
             </div>
         </div>
     </section>
 
-    <div class="modal fade" id="bankModal" tabindex="-1" data-bs-backdrop="static">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content glass-panel border-0 text-white">
+    <div class="modal fade" id="bankModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content aurora-card border-0 text-white">
                 <div class="modal-header border-bottom border-white border-opacity-10">
-                    <h5 class="modal-title">จัดการบัญชี: <span id="modal-client-name" class="text-primary fw-bold"></span></h5>
+                    <h5 class="modal-title">จัดการบัญชีธนาคาร</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="row">
-                        <div class="col-md-5 border-end border-white border-opacity-10">
-                            <h6 class="text-white-50 mb-3">เพิ่มบัญชีใหม่</h6>
-                            
-                            <label class="small text-muted mb-2">1. เลือกธนาคาร</label>
-                            <div id="bank-selector-grid" class="d-flex flex-wrap gap-2 mb-3" style="max-height: 150px; overflow-y: auto;">
-                                </div>
-                            <input type="hidden" id="selected-bank-code">
-
-                            <div class="mb-2">
-                                <label class="small text-muted">เลขบัญชี</label>
-                                <input id="input-acc-num" class="form-control bg-dark text-white border-secondary" placeholder="xxx-x-xxxxx-x">
-                            </div>
-                            <div class="mb-3">
-                                <label class="small text-muted">ชื่อบัญชี (ภาษาไทย/อังกฤษ)</label>
-                                <input id="input-acc-name" class="form-control bg-dark text-white border-secondary" placeholder="เช่น นายสมชาย ใจดี">
-                            </div>
-
-                            <button onclick="sys.addBankAccount()" class="btn btn-primary w-100">
-                                <i class="fas fa-plus-circle me-2"></i> เพิ่มบัญชี
-                            </button>
+                    
+                    <label class="small text-white-50 mb-2">1. เลือกธนาคาร</label>
+                    <div id="bank-select-container" class="d-flex gap-2 overflow-auto pb-3 mb-3">
                         </div>
+                    <input type="hidden" id="sel-bank-id">
 
-                        <div class="col-md-7 ps-md-4">
-                            <h6 class="text-white-50 mb-3">บัญชีปัจจุบัน</h6>
-                            <div id="modal-bank-list-container" class="d-flex flex-column gap-2" style="max-height: 400px; overflow-y: auto;">
-                                </div>
-                        </div>
+                    <div class="mb-2">
+                        <label class="small text-white-50 mb-1">2. เลขบัญชี</label>
+                        <input id="inp-acc" class="glass-input" placeholder="เลขบัญชี (ไม่ต้องมีขีด)">
                     </div>
+                    <div class="mb-3">
+                        <label class="small text-white-50 mb-1">3. ชื่อบัญชี (ภาษาไทย)</label>
+                        <input id="inp-name" class="glass-input" placeholder="เช่น นายสมชาย ใจดี">
+                    </div>
+
+                    <button onclick="app.saveBank()" class="btn-aurora w-100 mb-4">เพิ่มบัญชีเข้าระบบ</button>
+                    
+                    <hr class="border-white border-opacity-10">
+                    <div class="small text-white-50 mb-2">บัญชีที่มีอยู่แล้ว</div>
+                    <div id="modal-list" class="d-flex flex-column gap-2" style="max-height: 200px; overflow-y: auto;">
+                        </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script type="module">
+        // 1. IMPORT FIREBASE (เชื่อมต่อฐานข้อมูล)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, doc, setDoc, onSnapshot, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // --- 1. CONFIGURATION ---
+        // 2. CONFIGURATION (ตั้งค่า)
         const firebaseConfig = {
             apiKey: "AIzaSyDT39HkTA1TLFKvuQNZcrNeIZMLANgy2z0",
             authDomain: "scan-4b703.firebaseapp.com",
@@ -405,469 +421,394 @@
             messagingSenderId: "667992011250",
             appId: "1:667992011250:web:adce534c0f97b4ddb47b6b"
         };
-        const ADMIN_EMAIL = "fafa@gmail.com"; // แก้ email แอดมินตรงนี้
+        const ADMIN_EMAIL = "fafa@gmail.com"; // อีเมลแอดมินของคุณ
 
-        // --- 2. BANK DATA (MAPPED TO THAI-BANK-ICONS CSS) ---
-        // Class names correspond to the CSS library
-        const BANKS = [
-            { code: 'kbank', name: 'กสิกรไทย', css: 'th-kbank', color: '#138f2d' },
-            { code: 'scb', name: 'ไทยพาณิชย์', css: 'th-scb', color: '#4e2e7f' },
-            { code: 'ktb', name: 'กรุงไทย', css: 'th-ktb', color: '#1ba5e1' },
-            { code: 'bbl', name: 'กรุงเทพ', css: 'th-bbl', color: '#1e4598' },
-            { code: 'gsb', name: 'ออมสิน', css: 'th-gsb', color: '#eb198d' },
-            { code: 'ttb', name: 'ทีทีบี', css: 'th-ttb', color: '#0050f0' },
-            { code: 'bay', name: 'กรุงศรี', css: 'th-bay', color: '#fec43b' },
-            { code: 'baac', name: 'ธ.ก.ส.', css: 'th-baac', color: '#4b9b1d' },
-            { code: 'cimb', name: 'ซีไอเอ็มบี', css: 'th-cimb', color: '#7e2f36' },
-            { code: 'uob', name: 'ยูโอบี', css: 'th-uob', color: '#0b3979' },
-            { code: 'promptpay', name: 'พร้อมเพย์', css: 'th-promptpay', color: '#1c3d6e' }, // Custom handling for PromptPay
-            { code: 'truemoney', name: 'TrueMoney', css: 'th-truemoney', color: '#ff5c00' }  // Custom handling
+        // 3. DATABASE OF BANKS (ข้อมูลธนาคารและสี)
+        // code: รหัสใช้ในระบบ, css: ชื่อคลาสใน thai-bank-icons, color: สีธีม, name: ชื่อไทย
+        const BANK_DB = [
+            { code: 'kbank', css: 'th-kbank', color: '#138f2d', name: 'กสิกรไทย' },
+            { code: 'scb', css: 'th-scb', color: '#4e2e7f', name: 'ไทยพาณิชย์' },
+            { code: 'ktb', css: 'th-ktb', color: '#1ba5e1', name: 'กรุงไทย' },
+            { code: 'bbl', css: 'th-bbl', color: '#1e4598', name: 'กรุงเทพ' },
+            { code: 'gsb', css: 'th-gsb', color: '#eb198d', name: 'ออมสิน' },
+            { code: 'ttb', css: 'th-ttb', color: '#0050f0', name: 'ทีทีบี' },
+            { code: 'bay', css: 'th-bay', color: '#fec43b', name: 'กรุงศรี' },
+            { code: 'truemoney', css: 'th-truemoney', color: '#ff5c00', name: 'TrueMoney' },
+            { code: 'promptpay', css: 'th-promptpay', color: '#1c3d6e', name: 'พร้อมเพย์' }
         ];
 
-        // --- 3. SYSTEM CLASS (CONTROLLER) ---
-        class PayLinkSystem {
+        // 4. MAIN APP CLASS (คลาสควบคุมการทำงานทั้งหมด)
+        class AppSystem {
             constructor() {
+                // เริ่มต้น Firebase
                 this.app = initializeApp(firebaseConfig);
                 this.auth = getAuth(this.app);
                 this.db = getFirestore(this.app);
                 
-                this.magicCount = 0;
-                this.currentClientId = null;
-                this.modalInstance = null;
-                
-                // Initialize
-                this.init();
-                this.initParticleBackground();
+                // ตัวแปรภายใน
+                this.knocks = 0; // นับจำนวนคลิกเข้าแอดมิน
+                this.currentClientId = null; // เก็บ ID ลูกค้าที่กำลังแก้ไข
+                this.modalObj = null; // เก็บ Object Modal
+
+                this.init(); // เริ่มทำงาน
             }
 
-            // --- INITIALIZATION ---
+            // --- A. INITIALIZATION (เริ่มระบบ) ---
             async init() {
-                // Remove loader
-                setTimeout(() => document.getElementById('loader').style.display = 'none', 800);
+                // ซ่อน Loader เมื่อโหลดเสร็จ
+                setTimeout(() => document.getElementById('app-loader').style.display = 'none', 800);
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const code = urlParams.get('code');
 
-                // Route Logic
-                if (code) {
-                    await this.loadClientView(code);
+                if(code) {
+                    // ถ้ามี Code -> โหลดหน้าลูกค้า
+                    this.loadClientMode(code);
                 } else {
-                    this.checkAdminSession();
+                    // ถ้าไม่มี Code -> ตรวจสอบสิทธิ์แอดมิน
+                    this.checkAdminMode();
                 }
             }
 
-            goto(viewId) {
+            // สลับหน้าจอ (View Switcher)
+            showView(viewId) {
                 document.querySelectorAll('section').forEach(el => el.classList.remove('active-view'));
                 document.getElementById(viewId).classList.add('active-view');
             }
 
-            // --- CLIENT LOGIC (CRITICAL FIX: ASYNC/AWAIT) ---
-            async loadClientView(code) {
+            // --- B. CLIENT LOGIC (ฝั่งลูกค้า) ---
+            async loadClientMode(code) {
                 try {
-                    // 1. Get Client Data
+                    // ดึงข้อมูลลูกค้าจาก Firestore
                     const q = query(collection(this.db, "clients"), where("code", "==", code));
                     const snapshot = await getDocs(q);
 
+                    // ถ้าไม่พบข้อมูล
                     if (snapshot.empty) {
-                        Swal.fire({icon: 'error', title: 'ไม่พบข้อมูล', text: 'ลิงก์ไม่ถูกต้อง', background: '#0f172a', color: '#fff'});
+                        Swal.fire({
+                            icon: 'error', 
+                            title: 'ไม่พบข้อมูล', 
+                            text: 'ลิงก์นี้อาจไม่ถูกต้องหรือถูกยกเลิกแล้ว',
+                            background: '#0f172a', color: '#fff'
+                        });
                         return;
                     }
 
                     const clientData = snapshot.docs[0].data();
                     const clientId = snapshot.docs[0].id;
 
-                    // 2. Setup UI
-                    this.goto('view-client');
-                    document.getElementById('client-name-display').innerText = clientData.name;
+                    // แสดงผลชื่อ
+                    this.showView('view-client');
+                    document.getElementById('client-name').innerText = clientData.name;
 
-                    // 3. Load Config (Link)
-                    const configSnap = await getDoc(doc(this.db, "system_config", "main"));
-                    const socialLink = configSnap.exists() ? (configSnap.data().fbLink || '#') : '#';
-                    
-                    // Set all links
-                    document.getElementById('btn-contact-slip').href = socialLink;
-                    document.getElementById('btn-upsell').href = socialLink;
-                    document.getElementById('btn-contact-expired').href = socialLink;
+                    // ดึงลิงก์ติดต่อจาก Config
+                    const confSnap = await getDoc(doc(this.db, "system_config", "main"));
+                    const contactLink = confSnap.exists() ? (confSnap.data().fbLink || '#') : '#';
 
-                    // 4. Check Expiration
+                    // ผูกลิงก์กับปุ่มต่างๆ
+                    document.getElementById('btn-contact-main').href = contactLink;
+                    document.getElementById('btn-upsell').href = contactLink;
+                    document.getElementById('btn-renew').href = contactLink;
+
+                    // ตรวจสอบวันหมดอายุ
                     if (Date.now() > clientData.expireAt) {
-                        document.getElementById('expired-overlay').classList.remove('d-none');
-                        document.getElementById('expired-overlay').classList.add('d-flex');
-                        return; // Stop loading banks
+                        document.getElementById('bank-list-area').style.display = 'none';
+                        document.getElementById('active-actions').style.display = 'none';
+                        document.getElementById('expired-state').classList.remove('d-none');
+                    } else {
+                        // ถ้ายังไม่หมดอายุ -> โหลดบัญชีธนาคาร
+                        this.renderBankList(clientId);
                     }
 
-                    // 5. Load Banks (Real-time Listener)
-                    this.renderClientBanks(clientId);
-
-                } catch (error) {
-                    console.error("Client Load Error:", error);
-                    Swal.fire('Error', 'System Malfunction', 'error');
+                } catch (err) {
+                    console.error("Error:", err);
                 }
             }
 
-            renderClientBanks(clientId) {
-                const container = document.getElementById('client-content-area');
+            // ฟังก์ชันแสดงรายการบัญชี (หัวใจของ V9)
+            renderBankList(clientId) {
+                const listContainer = document.getElementById('bank-list-area');
                 
-                // Use Snapshot for real-time updates
+                // Realtime Listener: ข้อมูลเปลี่ยน หน้าเว็บเปลี่ยนทันที
                 onSnapshot(query(collection(this.db, "bank_accounts"), where("clientId", "==", clientId)), (snap) => {
-                    container.innerHTML = ''; // Clear loading spinner
+                    listContainer.innerHTML = '';
                     
                     if (snap.empty) {
-                        container.innerHTML = '<div class="text-center text-white-50 py-4 border border-secondary border-opacity-25 rounded-3">ยังไม่มีบัญชีธนาคาร</div>';
+                        listContainer.innerHTML = '<div class="text-center text-white-50 p-4 border border-secondary border-opacity-25 rounded-4">ยังไม่ได้เพิ่มบัญชีธนาคาร</div>';
                         return;
                     }
 
-                    snap.forEach(doc => {
-                        const b = doc.data();
-                        const bankInfo = BANKS.find(x => x.code === b.bank) || BANKS[0];
-                        
-                        // Handle Custom Icons for Wallet/PromptPay if needed, otherwise use CSS
-                        const iconClass = `th ${bankInfo.css}`; 
-                        
-                        const html = `
-                        <div class="bank-card" onclick="sys.copyText('${b.accNum}')">
+                    snap.forEach(docSnap => {
+                        const data = docSnap.data();
+                        // หาข้อมูลธีมสีจาก BANK_DB
+                        const bankTheme = BANK_DB.find(b => b.code === data.bank) || BANK_DB[0];
+
+                        // สร้าง HTML การ์ด (ใส่สีตามธีม)
+                        const cardHTML = `
+                        <div class="bank-card" style="--bank-theme: ${bankTheme.color}" onclick="app.copyToClipboard('${data.accNum}')">
                             <div class="d-flex align-items-center">
-                                <div class="bank-icon-box">
-                                    <i class="${iconClass}"></i>
+                                <div class="bank-icon-wrapper">
+                                    <i class="th ${bankTheme.css} text-dark"></i>
                                 </div>
                                 <div>
-                                    <div class="fw-bold fs-5 text-white font-monospace">${this.formatBankNum(b.accNum)}</div>
+                                    <div class="fw-bold fs-5 font-monospace text-white">${this.formatAcc(data.accNum)}</div>
                                     <div class="d-flex flex-column">
-                                        <span class="small text-white-50">${bankInfo.name}</span>
-                                        ${b.accName ? `<span class="small text-info">${b.accName}</span>` : ''}
+                                        <span class="small text-white-50">${bankTheme.name}</span>
+                                        ${data.accName ? `<span class="small" style="color:${bankTheme.color}">${data.accName}</span>` : ''}
                                     </div>
                                 </div>
                             </div>
-                            <div class="copy-badge"><i class="far fa-copy me-1"></i> Copy</div>
-                        </div>
-                        `;
-                        container.innerHTML += html;
+                            <div class="btn-copy-action">
+                                <i class="far fa-copy"></i> คัดลอก
+                            </div>
+                        </div>`;
+                        
+                        listContainer.innerHTML += cardHTML;
                     });
                 });
             }
 
-            // --- ADMIN LOGIC ---
-            triggerLogin() {
-                this.magicCount++;
-                if (this.magicCount >= 5) {
-                    this.magicCount = 0;
-                    this.goto('view-login');
+            // ฟังก์ชันคัดลอกเลขบัญชี
+            copyToClipboard(text) {
+                navigator.clipboard.writeText(text);
+                const Toast = Swal.mixin({
+                    toast: true, position: 'top', showConfirmButton: false, timer: 1500,
+                    background: '#1e293b', color: '#fff', iconColor: '#4ade80'
+                });
+                Toast.fire({ icon: 'success', title: 'คัดลอกเลขบัญชีแล้ว' });
+            }
+
+            // --- C. ADMIN SYSTEM (ฝั่งแอดมิน) ---
+            
+            // สูตรลับเคาะประตู 5 ครั้ง
+            secretKnock() {
+                this.knocks++;
+                if(this.knocks >= 5) {
+                    this.knocks = 0;
+                    this.showView('view-login');
                 }
             }
 
-            checkAdminSession() {
+            // ตรวจสอบสถานะล็อกอิน
+            checkAdminMode() {
                 onAuthStateChanged(this.auth, (user) => {
                     if (user && user.email === ADMIN_EMAIL) {
-                        this.initAdminDashboard(user);
+                        this.initDashboard();
                     } else {
-                        // If root URL and not admin -> Show generic client view (Placeholder)
+                        // ถ้าไม่ใช่แอดมิน และไม่มี Code -> แสดงหน้า Welcome
                         if(!window.location.search) {
-                            this.goto('view-client');
-                            document.getElementById('client-name-display').innerText = "Welcome";
-                            document.getElementById('client-content-area').innerHTML = '<div class="text-center text-white-50">Please use your payment link.</div>';
+                            this.showView('view-client');
+                            document.getElementById('client-name').innerText = "Welcome";
+                            document.getElementById('bank-list-area').innerHTML = '<div class="text-center text-white-50">กรุณาใช้ลิงก์ที่ได้รับจากร้านค้า</div>';
+                            document.getElementById('active-actions').style.display = 'none';
                         }
                     }
                 });
             }
 
-            async handleAdminLogin(e) {
+            // ล็อกอิน
+            async login(e) {
                 e.preventDefault();
-                const em = document.getElementById('admin-email').value;
-                const pw = document.getElementById('admin-pass').value;
+                const email = document.getElementById('log-email').value;
+                const pass = document.getElementById('log-pass').value;
                 try {
-                    await signInWithEmailAndPassword(this.auth, em, pw);
-                    // Auth state listener will handle the redirect
-                } catch (err) {
-                    Swal.fire({ icon: 'error', title: 'Login Failed', text: err.message, background: '#1e293b', color: '#fff' });
+                    await signInWithEmailAndPassword(this.auth, email, pass);
+                } catch(err) {
+                    Swal.fire({icon:'error', title:'เข้าสู่ระบบไม่สำเร็จ', text: err.message});
                 }
             }
 
-            initAdminDashboard(user) {
-                this.goto('view-dashboard');
+            // เริ่มต้นหน้า Dashboard
+            initDashboard() {
+                this.showView('view-dashboard');
                 
-                // Load Settings
+                // โหลดลิงก์ Config
                 getDoc(doc(this.db,"system_config","main")).then(d => {
-                    if(d.exists()) document.getElementById('config-contact-link').value = d.data().fbLink || '';
+                    if(d.exists()) document.getElementById('conf-fb').value = d.data().fbLink || '';
                 });
 
-                // Prepare Bank Selector in Modal
+                // สร้างตัวเลือกธนาคารใน Modal รอไว้
                 this.renderBankSelector();
-
-                // Listen for Clients
-                this.listenClients();
+                
+                // โหลดรายชื่อลูกค้า
+                this.loadAllClients();
             }
 
-            listenClients() {
-                const grid = document.getElementById('client-grid-container');
+            // โหลดลูกค้าทั้งหมด
+            loadAllClients() {
+                const grid = document.getElementById('client-grid');
                 onSnapshot(query(collection(this.db, "clients"), orderBy("createdAt", "desc")), (snap) => {
                     grid.innerHTML = '';
-                    snap.forEach(docSnap => {
-                        const data = docSnap.data();
+                    snap.forEach(d => {
+                        const data = d.data();
                         const daysLeft = Math.ceil((data.expireAt - Date.now()) / (1000 * 60 * 60 * 24));
                         const isExpired = daysLeft <= 0;
-                        const clientUrl = `${window.location.origin}${window.location.pathname}?code=${data.code}`;
+                        const linkUrl = `${window.location.origin}${window.location.pathname}?code=${data.code}`;
 
-                        // Generate Card
-                        const div = document.createElement('div');
-                        div.className = 'col-md-6 col-lg-4 client-item';
-                        div.dataset.name = data.name.toLowerCase();
-                        div.innerHTML = `
-                            <div class="glass-panel p-3 h-100 position-relative border ${isExpired ? 'border-danger border-opacity-25' : 'border-secondary border-opacity-10'}">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <h5 class="fw-bold m-0 text-white text-truncate" style="max-width: 70%;">${data.name}</h5>
-                                    <span class="badge ${isExpired ? 'bg-danger' : 'bg-success'} rounded-pill">
-                                        ${isExpired ? 'Expired' : daysLeft + ' วัน'}
-                                    </span>
+                        grid.innerHTML += `
+                        <div class="col-md-6 col-lg-4 client-item" data-name="${data.name}">
+                            <div class="aurora-card p-3 h-100 border ${isExpired ? 'border-danger' : 'border-secondary'} border-opacity-25">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h5 class="fw-bold m-0 text-truncate">${data.name}</h5>
+                                    <span class="badge ${isExpired ? 'bg-danger' : 'bg-success'} rounded-pill">${isExpired ? 'หมดอายุ' : daysLeft+' วัน'}</span>
                                 </div>
-                                
-                                <div class="bg-black bg-opacity-40 p-2 rounded mb-3 d-flex justify-content-between align-items-center">
-                                    <span class="font-monospace text-info small user-select-all">${data.code}</span>
-                                    <button class="btn btn-sm btn-link text-white-50 p-0" onclick="sys.copyText('${clientUrl}')">
-                                        <i class="fas fa-link"></i> Link
-                                    </button>
+                                <div class="bg-black bg-opacity-25 p-2 rounded mb-3 d-flex justify-content-between align-items-center">
+                                    <span class="text-info font-monospace small">${data.code}</span>
+                                    <button class="btn btn-sm btn-link text-white-50 p-0" onclick="app.copyToClipboard('${linkUrl}')"><i class="fas fa-link"></i> ลิงก์</button>
                                 </div>
-
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-primary flex-fill" onclick="sys.openBankModal('${docSnap.id}', '${data.name}')">
-                                        <i class="fas fa-wallet"></i> บัญชี
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-success flex-fill" onclick="sys.extendClient('${docSnap.id}')">
-                                        +วัน
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-danger flex-fill" onclick="sys.deleteClient('${docSnap.id}')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                    <button class="btn btn-sm btn-primary flex-fill" onclick="app.openModal('${d.id}', '${data.name}')">บัญชี</button>
+                                    <button class="btn btn-sm btn-outline-success flex-fill" onclick="app.extend('${d.id}')">+วัน</button>
+                                    <button class="btn btn-sm btn-outline-danger flex-fill" onclick="app.delClient('${d.id}')"><i class="fas fa-trash"></i></button>
                                 </div>
                             </div>
-                        `;
-                        grid.appendChild(div);
-                    });
-                });
-            }
-
-            // --- ADMIN ACTIONS ---
-            async addClient() {
-                const name = document.getElementById('new-client-name').value;
-                const days = document.getElementById('new-client-days').value;
-                if (!name) return Swal.fire('Error', 'ใส่ชื่อลูกค้าก่อน', 'warning');
-
-                const code = 'P-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-                const expireAt = Date.now() + (parseInt(days) * 24 * 60 * 60 * 1000);
-
-                await addDoc(collection(this.db, "clients"), {
-                    name, code, expireAt, createdAt: Date.now()
-                });
-
-                document.getElementById('new-client-name').value = '';
-                Swal.fire({ toast: true, icon: 'success', title: 'เพิ่มลูกค้าสำเร็จ', position: 'top-end', showConfirmButton: false, timer: 1500 });
-            }
-
-            async deleteClient(id) {
-                const res = await Swal.fire({
-                    title: 'ยืนยันการลบ?', text: 'ไม่สามารถกู้คืนได้', icon: 'warning',
-                    showCancelButton: true, confirmButtonColor: '#d33', background: '#1e293b', color: '#fff'
-                });
-                if (res.isConfirmed) await deleteDoc(doc(this.db, "clients", id));
-            }
-
-            async extendClient(id) {
-                const { value } = await Swal.fire({
-                    title: 'เพิ่มจำนวนวัน', input: 'number', inputValue: 30,
-                    background: '#1e293b', color: '#fff'
-                });
-                if (value) {
-                    const snap = await getDoc(doc(this.db, "clients", id));
-                    const currentExp = snap.data().expireAt;
-                    // Extend from now if expired, or from current exp if active
-                    const base = currentExp < Date.now() ? Date.now() : currentExp;
-                    await updateDoc(doc(this.db, "clients", id), {
-                        expireAt: base + (parseInt(value) * 86400000)
-                    });
-                    Swal.fire({ toast: true, icon: 'success', title: 'ต่ออายุเรียบร้อย', position: 'top-end', showConfirmButton: false, timer: 1000 });
-                }
-            }
-
-            // --- BANK MODAL MANAGEMENT ---
-            renderBankSelector() {
-                const grid = document.getElementById('bank-selector-grid');
-                grid.innerHTML = '';
-                BANKS.forEach(b => {
-                    const div = document.createElement('div');
-                    div.className = 'bank-option rounded border border-secondary border-opacity-25 p-2 cursor-pointer text-center';
-                    div.style.width = '70px';
-                    div.style.cursor = 'pointer';
-                    div.innerHTML = `<i class="th ${b.css} fs-2"></i><div style="font-size:10px;" class="mt-1 text-truncate">${b.name}</div>`;
-                    
-                    div.onclick = () => {
-                        document.querySelectorAll('.bank-option').forEach(el => {
-                            el.style.background = 'transparent'; 
-                            el.style.borderColor = 'rgba(255,255,255,0.1)';
-                        });
-                        div.style.background = 'rgba(79, 70, 229, 0.3)';
-                        div.style.borderColor = '#4f46e5';
-                        document.getElementById('selected-bank-code').value = b.code;
-                    };
-                    grid.appendChild(div);
-                });
-            }
-
-            openBankModal(id, name) {
-                this.currentClientId = id;
-                document.getElementById('modal-client-name').innerText = name;
-                document.getElementById('input-acc-num').value = '';
-                document.getElementById('input-acc-name').value = '';
-                document.getElementById('selected-bank-code').value = '';
-                // Clear selection visual
-                document.querySelectorAll('.bank-option').forEach(el => {
-                    el.style.background = 'transparent';
-                    el.style.borderColor = 'rgba(255,255,255,0.1)';
-                });
-
-                const modalEl = document.getElementById('bankModal');
-                this.modalInstance = new bootstrap.Modal(modalEl);
-                this.modalInstance.show();
-
-                this.listenModalBanks(id);
-            }
-
-            listenModalBanks(clientId) {
-                const list = document.getElementById('modal-bank-list-container');
-                // Realtime inside modal
-                onSnapshot(query(collection(this.db, "bank_accounts"), where("clientId", "==", clientId)), (snap) => {
-                    list.innerHTML = '';
-                    if(snap.empty) {
-                        list.innerHTML = '<div class="text-center text-white-50 mt-3">ไม่มีบัญชี</div>';
-                        return;
-                    }
-                    snap.forEach(docSnap => {
-                        const b = docSnap.data();
-                        const info = BANKS.find(x => x.code === b.bank) || BANKS[0];
-                        list.innerHTML += `
-                        <div class="d-flex justify-content-between align-items-center bg-white bg-opacity-5 p-2 rounded border border-secondary border-opacity-10">
-                            <div class="d-flex align-items-center gap-3">
-                                <i class="th ${info.css} fs-3"></i>
-                                <div>
-                                    <div class="small font-monospace">${b.accNum}</div>
-                                    <div class="text-white-50" style="font-size:10px;">${info.name} ${b.accName ? '| '+b.accName : ''}</div>
-                                </div>
-                            </div>
-                            <button onclick="sys.deleteBank('${docSnap.id}')" class="btn btn-sm btn-danger py-0 px-2 rounded-circle">
-                                <i class="fas fa-times"></i>
-                            </button>
                         </div>`;
                     });
                 });
             }
 
-            async addBankAccount() {
-                const bank = document.getElementById('selected-bank-code').value;
-                const accNum = document.getElementById('input-acc-num').value;
-                const accName = document.getElementById('input-acc-name').value;
+            // --- D. ADMIN ACTIONS (จัดการข้อมูล) ---
 
-                if (!bank || !accNum) {
-                    Swal.fire({ toast: true, icon: 'warning', title: 'เลือกธนาคารและใส่เลขบัญชี', position: 'top' });
-                    return;
+            async addClient() {
+                const name = document.getElementById('new-name').value;
+                const days = document.getElementById('new-days').value;
+                if(!name) return;
+
+                const code = 'PAY-' + Math.random().toString(36).substring(2,6).toUpperCase();
+                await addDoc(collection(this.db, "clients"), {
+                    name, code, 
+                    expireAt: Date.now() + (days * 86400000),
+                    createdAt: Date.now()
+                });
+                
+                document.getElementById('new-name').value = '';
+                Swal.fire({toast:true, icon:'success', title:'สร้างลูกค้าสำเร็จ'});
+            }
+
+            async delClient(id) {
+                if((await Swal.fire({title:'ยืนยันลบ?', icon:'warning', showCancelButton:true})).isConfirmed) {
+                    deleteDoc(doc(this.db, "clients", id));
                 }
+            }
 
-                await addDoc(collection(this.db, "bank_accounts"), {
-                    clientId: this.currentClientId,
-                    bank, accNum, accName: accName || ''
+            async extend(id) {
+                const {value} = await Swal.fire({title:'เพิ่มวันใช้งาน', input:'number', inputValue:30});
+                if(value) {
+                    const snap = await getDoc(doc(this.db,"clients",id));
+                    const current = snap.data().expireAt;
+                    const base = current < Date.now() ? Date.now() : current;
+                    updateDoc(doc(this.db,"clients",id), { expireAt: base + (value*86400000) });
+                    Swal.fire({toast:true, icon:'success', title:'ต่ออายุแล้ว'});
+                }
+            }
+
+            // --- E. MODAL & BANK MANAGEMENT (จัดการบัญชีใน Modal) ---
+
+            renderBankSelector() {
+                const container = document.getElementById('bank-select-container');
+                container.innerHTML = '';
+                BANK_DB.forEach(b => {
+                    // สร้างปุ่มเลือกธนาคาร
+                    const btn = document.createElement('div');
+                    btn.className = 'bank-opt p-2 rounded border border-secondary border-opacity-25 text-center cursor-pointer';
+                    btn.style.minWidth = '70px';
+                    btn.innerHTML = `<i class="th ${b.css} fs-2 text-white"></i><div style="font-size:10px" class="mt-1 text-white-50 text-truncate">${b.name}</div>`;
+                    
+                    btn.onclick = () => {
+                        document.querySelectorAll('.bank-opt').forEach(e => {
+                            e.style.background = 'transparent';
+                            e.style.borderColor = 'rgba(255,255,255,0.1)';
+                        });
+                        btn.style.background = b.color; // เปลี่ยนสีพื้นหลังตามธนาคารที่เลือก
+                        btn.style.borderColor = b.color;
+                        document.getElementById('sel-bank-id').value = b.code;
+                    };
+                    container.appendChild(btn);
                 });
-
-                document.getElementById('input-acc-num').value = '';
-                document.getElementById('input-acc-name').value = '';
-                Swal.fire({ toast: true, icon: 'success', title: 'เพิ่มแล้ว', position: 'top', showConfirmButton: false, timer: 800 });
             }
 
-            deleteBank(id) { deleteDoc(doc(this.db, "bank_accounts", id)); }
+            openModal(id, name) {
+                this.currentClientId = id;
+                document.querySelector('.modal-title').innerText = `จัดการบัญชี: ${name}`;
+                document.getElementById('inp-acc').value = '';
+                document.getElementById('inp-name').value = '';
+                document.getElementById('sel-bank-id').value = '';
+                
+                // Reset Selection
+                document.querySelectorAll('.bank-opt').forEach(e => e.style.background = 'transparent');
 
-            // --- UTILS & SETTINGS ---
-            async saveConfig() {
-                const link = document.getElementById('config-contact-link').value;
-                await setDoc(doc(this.db, "system_config", "main"), { fbLink: link });
-                Swal.fire({ toast: true, icon: 'success', title: 'บันทึกเรียบร้อย' });
+                this.modalObj = new bootstrap.Modal(document.getElementById('bankModal'));
+                this.modalObj.show();
+                this.loadModalBanks(id);
             }
 
-            logout() { signOut(this.auth).then(() => window.location.reload()); }
-
-            copyText(txt) {
-                navigator.clipboard.writeText(txt);
-                Swal.fire({
-                    toast: true, icon: 'success', title: 'คัดลอกเรียบร้อย',
-                    position: 'top', showConfirmButton: false, timer: 1000,
-                    background: '#1e293b', color: '#fff'
+            loadModalBanks(id) {
+                const list = document.getElementById('modal-list');
+                onSnapshot(query(collection(this.db,"bank_accounts"), where("clientId","==",id)), snap => {
+                    list.innerHTML = '';
+                    snap.forEach(d => {
+                        const b = d.data();
+                        const theme = BANK_DB.find(x => x.code === b.bank) || BANK_DB[0];
+                        list.innerHTML += `
+                        <div class="d-flex justify-content-between align-items-center bg-white bg-opacity-5 p-2 rounded border border-white border-opacity-10">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="th ${theme.css} fs-4"></i>
+                                <div>
+                                    <div class="small font-monospace">${b.accNum}</div>
+                                    <div class="small text-white-50" style="font-size:10px">${theme.name}</div>
+                                </div>
+                            </div>
+                            <i class="fas fa-trash text-danger cursor-pointer p-2" onclick="app.delBank('${d.id}')"></i>
+                        </div>`;
+                    });
                 });
             }
 
-            formatBankNum(num) { return num; } // Customize formatting if needed
+            async saveBank() {
+                const bank = document.getElementById('sel-bank-id').value;
+                const acc = document.getElementById('inp-acc').value;
+                const name = document.getElementById('inp-name').value;
+                
+                if(bank && acc) {
+                    await addDoc(collection(this.db,"bank_accounts"), { 
+                        clientId: this.currentClientId, 
+                        bank, accNum: acc, accName: name 
+                    });
+                    document.getElementById('inp-acc').value = '';
+                    document.getElementById('inp-name').value = '';
+                    Swal.fire({toast:true, icon:'success', title:'เพิ่มบัญชีแล้ว', position:'top', showConfirmButton:false, timer:800});
+                } else {
+                    Swal.fire({toast:true, icon:'warning', title:'กรุณาเลือกธนาคารและใส่เลขบัญชี'});
+                }
+            }
 
-            switchTab(tabId, btn) {
-                document.querySelectorAll('#view-dashboard nav button').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+            delBank(id) { deleteDoc(doc(this.db,"bank_accounts",id)); }
+
+            // --- F. UTILS ---
+            async saveConf() {
+                await setDoc(doc(this.db,"system_config","main"), {fbLink: document.getElementById('conf-fb').value});
+                Swal.fire('บันทึกเรียบร้อย');
+            }
+
+            tab(t) {
                 document.getElementById('tab-clients').classList.add('d-none');
                 document.getElementById('tab-settings').classList.add('d-none');
-                document.getElementById('tab-' + tabId).classList.remove('d-none');
+                document.getElementById('tab-'+t).classList.remove('d-none');
             }
 
-            filterClients() {
-                const term = document.getElementById('search-client').value.toLowerCase();
-                document.querySelectorAll('.client-item').forEach(el => {
-                    const name = el.dataset.name;
-                    el.style.display = name.includes(term) ? 'block' : 'none';
+            filter() {
+                const v = document.getElementById('search-box').value.toLowerCase();
+                document.querySelectorAll('.client-item').forEach(e => {
+                    e.style.display = e.dataset.name.toLowerCase().includes(v) ? 'block' : 'none';
                 });
             }
 
-            // --- PARTICLE BACKGROUND ENGINE (VISUALS) ---
-            initParticleBackground() {
-                const canvas = document.getElementById('particle-canvas');
-                const ctx = canvas.getContext('2d');
-                let particles = [];
-                
-                const resize = () => {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                };
-                window.addEventListener('resize', resize);
-                resize();
-
-                class Particle {
-                    constructor() {
-                        this.x = Math.random() * canvas.width;
-                        this.y = Math.random() * canvas.height;
-                        this.size = Math.random() * 2;
-                        this.speedX = Math.random() * 0.5 - 0.25;
-                        this.speedY = Math.random() * 0.5 - 0.25;
-                        this.opacity = Math.random() * 0.5;
-                    }
-                    update() {
-                        this.x += this.speedX;
-                        this.y += this.speedY;
-                        if (this.x > canvas.width) this.x = 0;
-                        if (this.x < 0) this.x = canvas.width;
-                        if (this.y > canvas.height) this.y = 0;
-                        if (this.y < 0) this.y = canvas.height;
-                    }
-                    draw() {
-                        ctx.fillStyle = `rgba(148, 163, 184, ${this.opacity})`;
-                        ctx.beginPath();
-                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
-                }
-
-                for(let i=0; i<60; i++) particles.push(new Particle());
-
-                const animate = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    particles.forEach(p => { p.update(); p.draw(); });
-                    requestAnimationFrame(animate);
-                };
-                animate();
-            }
+            formatAcc(num) { return num; } // สามารถเขียนฟอร์แมตเลขบัญชี xxx-x-xxxxx-x ตรงนี้ได้
+            logout() { signOut(this.auth).then(()=>window.location.reload()); }
         }
 
-        // --- START SYSTEM ---
-        window.sys = new PayLinkSystem();
+        // เริ่มระบบ
+        window.app = new AppSystem();
     </script>
 </body>
 </html>
