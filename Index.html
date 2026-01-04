@@ -3,248 +3,389 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Secure Payment Gateway</title>
-    
+    <title>PayLink Enterprise V8</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
-    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lazywasabi/thai-bank-icons@master/dist/css/thai-bank-icons.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
+        /* =========================================
+           1. CORE VARIABLES & THEME
+           ========================================= */
         :root {
-            --primary: #6366f1;
-            --secondary: #8b5cf6;
-            --glass: rgba(15, 23, 42, 0.75);
+            --primary: #4f46e5;
+            --primary-glow: rgba(79, 70, 229, 0.5);
+            --secondary: #ec4899;
+            --bg-dark: #0f172a;
+            --glass-bg: rgba(15, 23, 42, 0.75);
             --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
         }
 
-        /* Base & Background */
         body {
             font-family: 'Prompt', sans-serif;
-            background-color: #020617;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-            color: white;
-            min-height: 100vh;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
             overflow-x: hidden;
+            min-height: 100vh;
         }
 
-        /* Glassmorphism */
-        .glass-card {
-            background: var(--glass);
+        /* Canvas Background */
+        #particle-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+        }
+
+        /* =========================================
+           2. UI COMPONENTS (GLASSMORPHISM)
+           ========================================= */
+        .glass-panel {
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
         }
 
-        /* Bank Item Style */
-        .bank-item {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex; align-items: center; justify-content: space-between;
-            transition: 0.3s; cursor: pointer; position: relative; overflow: hidden;
-        }
-        .bank-item:hover {
-            background: rgba(255,255,255,0.08);
-            transform: translateY(-2px);
-            border-color: rgba(99, 102, 241, 0.3);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        }
-        .bank-item:active { transform: scale(0.98); }
-
-        .bank-logo-img {
-            width: 48px; height: 48px;
+        .glass-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            object-fit: contain;
-            /* Shadow to make logo pop */
-            filter: drop-shadow(0 4px 3px rgba(0,0,0,0.3));
+            color: white;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+            background: rgba(0, 0, 0, 0.5);
         }
 
         /* Buttons */
-        .btn-main {
-            background: linear-gradient(135deg, #4f46e5, #7c3aed);
-            border: none; color: white; padding: 12px;
-            border-radius: 12px; font-weight: 500; width: 100%;
-            transition: 0.3s;
+        .btn-modern {
+            background: linear-gradient(135deg, var(--primary), #4338ca);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-main:hover { filter: brightness(1.2); transform: translateY(-1px); box-shadow: 0 0 20px rgba(79, 70, 229, 0.4); }
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px var(--primary-glow);
+            filter: brightness(1.1);
+        }
+        .btn-modern:active { transform: translateY(0); }
+
+        /* =========================================
+           3. BANK CARD STYLES (PREMIUM)
+           ========================================= */
+        .bank-card {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
         
-        .btn-upsell {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: #94a3b8; font-size: 0.9rem;
-            border-radius: 50px; padding: 8px 20px;
+        .bank-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 4px;
+            background: var(--primary);
+            border-radius: 4px 0 0 4px;
+            opacity: 0;
             transition: 0.3s;
         }
-        .btn-upsell:hover { background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.3); }
 
-        /* Inputs */
-        .glass-input {
-            background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-            color: white; padding: 12px; border-radius: 12px; width: 100%;
+        .bank-card:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+            border-color: rgba(255,255,255,0.2);
         }
-        .glass-input:focus { outline: none; border-color: var(--primary); background: rgba(0,0,0,0.5); }
+        .bank-card:hover::before { opacity: 1; }
 
-        /* View Control */
-        section { display: none; opacity: 0; transition: opacity 0.5s; }
-        section.active { display: block; opacity: 1; }
+        .bank-icon-box {
+            width: 54px; height: 54px;
+            border-radius: 14px;
+            background: white;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-right: 16px;
+        }
+        
+        .bank-icon-box i { font-size: 38px; } /* Adjust icon size */
 
-        /* Expired State */
-        .expired-overlay {
-            background: rgba(220, 38, 38, 0.1);
-            border: 1px solid rgba(220, 38, 38, 0.3);
-            border-radius: 16px; padding: 30px; text-align: center;
+        .copy-badge {
+            font-size: 10px;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 20px;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+        .bank-card:hover .copy-badge {
+            background: var(--primary);
+            color: white;
         }
 
-        @media(max-width: 768px) {
-            .admin-layout { grid-template-columns: 1fr; }
-            .sidebar { height: auto; position: static; margin-bottom: 20px; }
+        /* =========================================
+           4. VIEW CONTROLLER
+           ========================================= */
+        section { display: none !important; opacity: 0; transition: opacity 0.4s ease-in-out; }
+        section.active-view { display: block !important; opacity: 1; animation: fadeIn 0.5s forwards; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* =========================================
+           5. UTILITIES
+           ========================================= */
+        .loading-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: var(--bg-dark); z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+        }
+        
+        .admin-sidebar {
+            background: rgba(15, 23, 42, 0.9);
+            border-right: var(--glass-border);
+            min-height: 100vh;
+        }
+
+        /* Mobile tweaks */
+        @media (max-width: 991px) {
+            .admin-container { flex-direction: column; }
+            .admin-sidebar { min-height: auto; padding: 15px; border-right: none; border-bottom: var(--glass-border); }
         }
     </style>
 </head>
 <body>
 
-    <section id="view-loading" class="active">
-        <div class="d-flex justify-content-center align-items-center vh-100 flex-column">
-            <div class="spinner-border text-primary mb-3"></div>
-            <div class="text-white-50 small tracking-widest">SECURE GATEWAY V7</div>
-        </div>
-    </section>
+    <canvas id="particle-canvas"></canvas>
 
-    <section id="view-client">
-        <div class="container d-flex justify-content-center align-items-center min-vh-100 py-4">
-            <div class="glass-card p-4 p-md-5 w-100" style="max-width: 480px;">
-                
-                <div class="text-center mb-4">
-                    <div class="d-inline-flex p-3 rounded-circle bg-white bg-opacity-5 mb-3">
-                        <i class="fas fa-shield-halved fa-2x text-primary"></i>
-                    </div>
-                    <h3 id="client-name" class="fw-bold mb-1">...</h3>
-                    <p class="text-white-50 small">Official Payment Channel</p>
-                </div>
+    <div id="loader" class="loading-overlay">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status"></div>
+        <div class="mt-3 text-white-50 font-monospace">INITIALIZING V8 SYSTEM...</div>
+    </div>
 
-                <div id="state-active">
-                    <div id="bank-list" class="mb-4">
-                        </div>
+    <section id="view-client" class="py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-8">
                     
-                    <a id="btn-contact-main" href="#" target="_blank" class="btn-main mb-3 d-flex align-items-center justify-content-center gap-2 text-decoration-none">
-                        <i class="fab fa-facebook-messenger"></i> แจ้งสลิปการโอน
-                    </a>
+                    <div class="glass-panel p-4 p-md-5 position-relative overflow-hidden">
+                        <div class="text-center mb-5 position-relative z-1">
+                            <div class="d-inline-block p-1 rounded-circle bg-gradient-to-tr from-primary to-secondary mb-3" style="background: linear-gradient(45deg, var(--primary), var(--secondary));">
+                                <div class="bg-dark rounded-circle p-3">
+                                    <i class="fas fa-shield-alt fa-3x text-white"></i>
+                                </div>
+                            </div>
+                            <h2 id="client-name-display" class="fw-bold mb-1">...</h2>
+                            <p class="text-white-50 small text-uppercase tracking-wider">Secure Payment Gateway</p>
+                        </div>
 
-                    <div class="text-center mt-4 pt-3 border-top border-white border-opacity-10">
-                        <a id="btn-upsell-link" href="#" target="_blank" class="btn-upsell text-decoration-none">
-                            <i class="fas fa-code me-1"></i> สนใจทำระบบแบบนี้?
-                        </a>
+                        <div id="client-content-area" class="position-relative z-1">
+                            <div class="text-center text-white-50 py-5">
+                                <div class="spinner-grow spinner-grow-sm text-primary"></div> กำลังโหลดข้อมูลบัญชี...
+                            </div>
+                        </div>
+
+                        <div id="client-actions" class="mt-4 pt-3 border-top border-white border-opacity-10 position-relative z-1">
+                            <a id="btn-contact-slip" href="#" target="_blank" class="btn btn-modern w-100 mb-3 shadow-lg">
+                                <i class="fab fa-facebook-messenger me-2"></i> แจ้งสลิปการโอน
+                            </a>
+                            
+                            <div class="text-center">
+                                <a id="btn-upsell" href="#" target="_blank" class="text-decoration-none text-white-50 small">
+                                    <i class="fas fa-code me-1"></i> สนใจทำระบบรับเงินแบบนี้?
+                                </a>
+                            </div>
+                        </div>
+
+                        <div id="expired-overlay" class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-95 d-none flex-column justify-content-center align-items-center z-3 text-center p-4">
+                            <i class="fas fa-lock fa-4x text-danger mb-3"></i>
+                            <h3 class="fw-bold text-danger">ลิงก์หมดอายุ</h3>
+                            <p class="text-white-50 mb-4">ลิงก์ชำระเงินนี้หมดอายุการใช้งานแล้ว<br>กรุณาติดต่อเจ้าหน้าที่เพื่อขอลิงก์ใหม่</p>
+                            <a id="btn-contact-expired" href="#" target="_blank" class="btn btn-outline-light rounded-pill px-4">
+                                ติดต่อเจ้าหน้าที่
+                            </a>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <small class="text-white-50 opacity-25" style="cursor: default; user-select: none;" onclick="sys.triggerLogin()">
+                                Powered by PayLink V8 Enterprise
+                            </small>
+                        </div>
+
                     </div>
-                </div>
 
-                <div id="state-expired" class="d-none">
-                    <div class="expired-overlay mb-4">
-                        <i class="fas fa-lock fa-3x text-danger mb-3"></i>
-                        <h4 class="fw-bold text-danger">ลิงก์หมดอายุ</h4>
-                        <p class="text-white-50 small">กรุณาติดต่อแอดมินเพื่อขอลิงก์ใหม่ หรือต่ออายุการใช้งาน</p>
-                    </div>
-                    <a id="btn-renew" href="#" target="_blank" class="btn btn-danger w-100 py-3 rounded-xl mb-3">
-                        <i class="fas fa-headset me-2"></i> ติดต่อแอดมิน
-                    </a>
                 </div>
-
-                <div class="text-center mt-2">
-                    <span class="opacity-0" onclick="app.secretKnock()" style="cursor:default">.</span>
-                </div>
-
             </div>
         </div>
     </section>
 
     <section id="view-login">
-        <div class="d-flex justify-content-center align-items-center vh-100">
-            <div class="glass-card p-5" style="width: 100%; max-width: 400px;">
-                <h4 class="text-center fw-bold mb-4">System Access</h4>
-                <form onsubmit="app.login(event)">
-                    <input type="email" id="log-email" class="glass-input mb-3" placeholder="Email" required>
-                    <input type="password" id="log-pass" class="glass-input mb-4" placeholder="Password" required>
-                    <button class="btn-main">Login</button>
-                    <button type="button" onclick="window.location.reload()" class="btn btn-link text-white-50 w-100 mt-2 text-decoration-none">Back</button>
+        <div class="d-flex justify-content-center align-items-center vh-100 px-3">
+            <div class="glass-panel p-5 text-center" style="max-width: 450px; width: 100%;">
+                <div class="mb-4">
+                    <i class="fas fa-user-shield fa-3x text-primary"></i>
+                </div>
+                <h3 class="fw-bold mb-4">Admin Authentication</h3>
+                
+                <form onsubmit="sys.handleAdminLogin(event)">
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control bg-transparent text-white border-secondary" id="admin-email" placeholder="name@example.com" required>
+                        <label class="text-white-50">Email Address</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="password" class="form-control bg-transparent text-white border-secondary" id="admin-pass" placeholder="Password" required>
+                        <label class="text-white-50">Secure Password</label>
+                    </div>
+                    <button type="submit" class="btn btn-modern w-100 py-3">Access Dashboard</button>
+                    <button type="button" onclick="sys.goto('view-client')" class="btn btn-link text-white-50 mt-3 text-decoration-none">Back to Site</button>
                 </form>
             </div>
         </div>
     </section>
 
     <section id="view-dashboard">
-        <div class="container-fluid p-4" style="max-width: 1400px;">
-            <div class="row g-4">
-                <div class="col-lg-3">
-                    <div class="glass-card p-4 h-100">
-                        <h4 class="fw-bold mb-4 text-primary"><i class="fas fa-layer-group me-2"></i>PayLink <span class="text-white small opacity-50">V7</span></h4>
-                        <div class="nav flex-column gap-2 mb-4">
-                            <button onclick="app.tab('clients')" class="btn btn-outline-light border-0 text-start active-nav"><i class="fas fa-users me-2"></i> ลูกค้าทั้งหมด</button>
-                            <button onclick="app.tab('settings')" class="btn btn-outline-light border-0 text-start"><i class="fas fa-cog me-2"></i> ตั้งค่าระบบ</button>
-                        </div>
-                        <button onclick="app.logout()" class="btn btn-danger w-100 mt-auto"><i class="fas fa-power-off me-2"></i> ออกจากระบบ</button>
+        <div class="d-flex admin-container">
+            
+            <div class="admin-sidebar p-4 d-flex flex-column" style="width: 280px; flex-shrink: 0;">
+                <div class="d-flex align-items-center gap-3 mb-5">
+                    <div class="bg-primary rounded p-2"><i class="fas fa-cube text-white"></i></div>
+                    <div>
+                        <h5 class="fw-bold m-0">PayLink</h5>
+                        <small class="text-white-50" style="font-size:0.7em;">ENTERPRISE V8</small>
                     </div>
                 </div>
 
-                <div class="col-lg-9">
-                    <div id="tab-clients">
-                        <div class="glass-card p-4 mb-4">
-                            <div class="row g-3">
-                                <div class="col-md-5">
-                                    <input onkeyup="app.filter()" id="search" class="glass-input" placeholder="🔍 ค้นหาลูกค้า...">
+                <nav class="nav flex-column gap-2 flex-grow-1">
+                    <button class="btn btn-outline-light border-0 text-start active" onclick="sys.switchTab('clients', this)">
+                        <i class="fas fa-users me-2 w-25"></i> จัดการลูกค้า
+                    </button>
+                    <button class="btn btn-outline-light border-0 text-start" onclick="sys.switchTab('settings', this)">
+                        <i class="fas fa-sliders-h me-2 w-25"></i> ตั้งค่าระบบ
+                    </button>
+                </nav>
+
+                <div class="mt-auto pt-4 border-top border-white border-opacity-10">
+                    <button onclick="sys.logout()" class="btn btn-danger w-100 rounded-pill">
+                        <i class="fas fa-sign-out-alt me-2"></i> Log Out
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-grow-1 p-4" style="overflow-y: auto; height: 100vh;">
+                
+                <div id="tab-clients" class="fade-in">
+                    <div class="glass-panel p-4 mb-4">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label class="text-white-50 small mb-2">ค้นหาข้อมูล</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-white"><i class="fas fa-search"></i></span>
+                                    <input type="text" id="search-client" onkeyup="sys.filterClients()" class="form-control bg-dark text-white border-secondary" placeholder="พิมพ์ชื่อลูกค้า...">
                                 </div>
-                                <div class="col-md-7 d-flex gap-2">
-                                    <input id="new-name" class="glass-input" placeholder="ชื่อลูกค้าใหม่">
-                                    <input id="new-days" type="number" class="glass-input text-center" value="30" style="width: 80px;">
-                                    <button onclick="app.addClient()" class="btn btn-success px-4"><i class="fas fa-plus"></i></button>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-white-50 small mb-2">เพิ่มลูกค้าใหม่ (Auto Gen Code)</label>
+                                <div class="d-flex gap-2">
+                                    <input id="new-client-name" class="form-control bg-dark text-white border-secondary" placeholder="ชื่อลูกค้า">
+                                    <input id="new-client-days" type="number" class="form-control bg-dark text-white border-secondary text-center" value="30" style="width: 80px;" placeholder="วัน">
+                                    <button onclick="sys.addClient()" class="btn btn-primary"><i class="fas fa-plus"></i></button>
                                 </div>
                             </div>
                         </div>
-                        <div id="client-grid" class="row g-3"></div>
                     </div>
 
-                    <div id="tab-settings" class="d-none">
-                        <div class="glass-card p-5" style="max-width: 600px;">
-                            <h5 class="mb-4">ตั้งค่าการติดต่อ</h5>
-                            <label class="text-white-50 mb-2">ลิงก์ Facebook/Line (สำหรับปุ่มติดต่อ)</label>
-                            <input id="conf-fb" class="glass-input mb-4" placeholder="https://...">
-                            <button onclick="app.saveConf()" class="btn btn-success px-4">บันทึก</button>
+                    <div id="client-grid-container" class="row g-4">
                         </div>
+                </div>
+
+                <div id="tab-settings" class="d-none fade-in">
+                    <div class="glass-panel p-5" style="max-width: 800px;">
+                        <h4 class="fw-bold mb-4 border-bottom border-secondary pb-3">System Configuration</h4>
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-white-50">Social Media Link (สำหรับปุ่มติดต่อ)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-white"><i class="fab fa-line"></i></span>
+                                <input type="text" id="config-contact-link" class="form-control bg-dark text-white border-secondary p-3" placeholder="https://line.me/ti/p/...">
+                            </div>
+                            <div class="form-text text-white-50">ลิงก์นี้จะใช้สำหรับปุ่ม "แจ้งสลิป", "สนใจระบบ", และ "ติดต่อแอดมิน"</div>
+                        </div>
+
+                        <button onclick="sys.saveConfig()" class="btn btn-success px-4 py-2">
+                            <i class="fas fa-save me-2"></i> บันทึกการตั้งค่า
+                        </button>
                     </div>
                 </div>
+
             </div>
         </div>
     </section>
 
-    <div class="modal fade" id="bankModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content glass-card border-0">
-                <div class="modal-header border-bottom border-secondary border-opacity-25">
-                    <h5 class="modal-title">จัดการบัญชี</h5>
+    <div class="modal fade" id="bankModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content glass-panel border-0 text-white">
+                <div class="modal-header border-bottom border-white border-opacity-10">
+                    <h5 class="modal-title">จัดการบัญชี: <span id="modal-client-name" class="text-primary fw-bold"></span></h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="small text-white-50 mb-2">เลือกธนาคาร</label>
-                        <div id="bank-select" class="d-flex gap-2 overflow-auto pb-2"></div>
-                        <input type="hidden" id="sel-bank-id">
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <div class="col-md-5 border-end border-white border-opacity-10">
+                            <h6 class="text-white-50 mb-3">เพิ่มบัญชีใหม่</h6>
+                            
+                            <label class="small text-muted mb-2">1. เลือกธนาคาร</label>
+                            <div id="bank-selector-grid" class="d-flex flex-wrap gap-2 mb-3" style="max-height: 150px; overflow-y: auto;">
+                                </div>
+                            <input type="hidden" id="selected-bank-code">
+
+                            <div class="mb-2">
+                                <label class="small text-muted">เลขบัญชี</label>
+                                <input id="input-acc-num" class="form-control bg-dark text-white border-secondary" placeholder="xxx-x-xxxxx-x">
+                            </div>
+                            <div class="mb-3">
+                                <label class="small text-muted">ชื่อบัญชี (ภาษาไทย/อังกฤษ)</label>
+                                <input id="input-acc-name" class="form-control bg-dark text-white border-secondary" placeholder="เช่น นายสมชาย ใจดี">
+                            </div>
+
+                            <button onclick="sys.addBankAccount()" class="btn btn-primary w-100">
+                                <i class="fas fa-plus-circle me-2"></i> เพิ่มบัญชี
+                            </button>
+                        </div>
+
+                        <div class="col-md-7 ps-md-4">
+                            <h6 class="text-white-50 mb-3">บัญชีปัจจุบัน</h6>
+                            <div id="modal-bank-list-container" class="d-flex flex-column gap-2" style="max-height: 400px; overflow-y: auto;">
+                                </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <input id="inp-acc" class="glass-input mb-2" placeholder="เลขบัญชี">
-                        <input id="inp-name" class="glass-input" placeholder="ชื่อบัญชี (ระบุหรือไม่ก็ได้)">
-                    </div>
-                    <button onclick="app.saveBank()" class="btn btn-primary w-100 mb-4">เพิ่มบัญชี</button>
-                    
-                    <div class="small text-white-50 mb-2">รายการบัญชี</div>
-                    <div id="modal-list" class="bg-black bg-opacity-25 rounded p-2" style="max-height: 200px; overflow-y: auto;"></div>
                 </div>
             </div>
         </div>
@@ -255,6 +396,7 @@
         import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, updateDoc, doc, setDoc, onSnapshot, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+        // --- 1. CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyDT39HkTA1TLFKvuQNZcrNeIZMLANgy2z0",
             authDomain: "scan-4b703.firebaseapp.com",
@@ -263,250 +405,469 @@
             messagingSenderId: "667992011250",
             appId: "1:667992011250:web:adce534c0f97b4ddb47b6b"
         };
-        const ADMIN_EMAIL = "fafa@gmail.com";
+        const ADMIN_EMAIL = "fafa@gmail.com"; // แก้ email แอดมินตรงนี้
 
-        // --- EMBEDDED LOGOS (Base64 SVG) ---
-        const ICONS = {
-            kbank: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMTM4ZjJkIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMzY4IDI1NmwtMTMxLTE1M2gtNjR2MzA2aDY0VjIzNWw1NiA2NSA3NSA4OWg3MkwzMjYgMjcybDgwLTExNmgtNzF6Ii8+PC9zdmc+",
-            scb: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNGUyZTdmIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMzU4IDM1N2ExMjIgMTIyIDAgMSAxLTU0LTExIDY5IDY5IDAgMCAxLTQwLTM3IDExMiAxMTIgMCAwIDEtMTItNTJjMC01NCAyOC04NyA4MS05OCAzMCA1IDU1IDI0IDY1IDUxbDM5LTE3Yy0xNS0zOC01Mi02NS05OC03MS02NyAxMy0xMDUgNjItOTggMTI5IDMgMzYgMjAgNjcgNDkgODggMzAgMTkgNjUgMjUgOTkgMTkgNDItOSA3NC0zNyA4NC03N2wtNDAgLTEwYy02IDIyLTI0IDQxLTQ4IDQ5LTI1IDctNTItMy02Ny0yM3oiLz48L3N2Zz4=",
-            ktb: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMDBhNWU1IiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMzUwIDIyN2wtOTQgMTU1LTE1MC05OGw5NC0xNTV6bS00Ni04OWwtMjUtNDEtODkgNTMgMjUgNDF6bTY0IDEwNWwtMjUtNDEtODkgNTMgMjUgNDF6Ii8+PC9zdmc+",
-            bbl: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMWU0NTk4IiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMzM2IDM0N2MtMTggMTgtNDYgMTgtNzUgMThoLTc1VjE0OGg2NmMzMCAwIDU1IDQgNzIgMjMgMTYgMTggMTYgNDggMCA2N2wtOCA4YzIzIDggMzYgMzYgMzYgNjhTQTMzNiAzMzAgMzM2IDM0N3ptLTQ3LTQ3YzktOSA5LTIzIDAtMzItOC05LTIyLTktNDEtOWgtNTZ2NTFoNTZjMTggMCAzMi0xIDQxLTEwem0tOS0xMDJjOC04IDgtMjEgMC0yOS04LTgtMjEtOC0zNy04aC01M3Y0NWg1M2MxNyAwIDMwIDAgMzctOHoiLz48L3N2Zz4=",
-            gsb: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZWIxOThkIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDExMmMtNzkgMC0xNDQgNjUtMTQ0IDE0NHM2NSAxNDQgMTQ0IDE0NCAxNDQtNjUgMTQ0LTE0NFMzMzUgMTEyIDI1NiAxMTJem0wIDIzOGMtNTIgMC05NC00Mi05NC05NHM0Mi05NCA5NC05NCA5NCA0MiA5NCA5NC00MiA5NC05NCA5NHptNTgtODVoLTU4djU4YzMxIDAgNTgtMjYgNTgtNTh6Ii8+PC9zdmc+",
-            ttb: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMDA1MGYwIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTE1IDEzNGg1NnYyNDRoLTU2em04MiAwcTYgMCAxMiA1bDQ2IDQ3IDQ2LTQ3cTYtNSAxMi01aDU2djI0NGgtNTZWMjQzbC01OCA1OS01OC01OXYxMzVoLTU2VjEzNHoiLz48L3N2Zz4=",
-            promptpay: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjMWMzZDZlIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMjU2IDExMmMtNzkgMC0xNDQgNjUtMTQ0IDE0NHM2NSAxNDQgMTQ0IDE0NCAxNDQtNjUgMTQ0LTE0NFMzMzUgMTEyIDI1NiAxMTJem0wIDIzOGMtNTIgMC05NC00Mi05NC05NHM0Mi05NCA5NC05NCA5NCA0MiA5NCA5NC00MiA5NC05NCA5NHptLTI0LTU2bDI0LTI0IDI0IDI0VjIxNmgtNDh6Ii8+PC9zdmc+",
-            wallet: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjZmY1YzAwIiBkPSJNMCAwaDUxMnY1MTJIMHoiLz48cGF0aCBmaWxsPSIjZmZmIiBkPSJNMTE1IDEzNGg1NnYyNDRoLTU2em04NSAwaDU2djE5OWg3OXY0NWgtMTM1VjEzNHptMTYzIDBoNTZ2NDVoLTU2em0wIDgwaDU2djE2NGgtNTZ6Ii8+PC9zdmc+"
-        };
-
+        // --- 2. BANK DATA (MAPPED TO THAI-BANK-ICONS CSS) ---
+        // Class names correspond to the CSS library
         const BANKS = [
-            {id:'kbank', n:'กสิกรไทย'}, {id:'scb', n:'ไทยพาณิชย์'}, {id:'ktb', n:'กรุงไทย'}, 
-            {id:'bbl', n:'กรุงเทพ'}, {id:'gsb', n:'ออมสิน'}, {id:'ttb', n:'ทีทีบี'}, 
-            {id:'promptpay', n:'พร้อมเพย์'}, {id:'wallet', n:'TrueMoney'}
+            { code: 'kbank', name: 'กสิกรไทย', css: 'th-kbank', color: '#138f2d' },
+            { code: 'scb', name: 'ไทยพาณิชย์', css: 'th-scb', color: '#4e2e7f' },
+            { code: 'ktb', name: 'กรุงไทย', css: 'th-ktb', color: '#1ba5e1' },
+            { code: 'bbl', name: 'กรุงเทพ', css: 'th-bbl', color: '#1e4598' },
+            { code: 'gsb', name: 'ออมสิน', css: 'th-gsb', color: '#eb198d' },
+            { code: 'ttb', name: 'ทีทีบี', css: 'th-ttb', color: '#0050f0' },
+            { code: 'bay', name: 'กรุงศรี', css: 'th-bay', color: '#fec43b' },
+            { code: 'baac', name: 'ธ.ก.ส.', css: 'th-baac', color: '#4b9b1d' },
+            { code: 'cimb', name: 'ซีไอเอ็มบี', css: 'th-cimb', color: '#7e2f36' },
+            { code: 'uob', name: 'ยูโอบี', css: 'th-uob', color: '#0b3979' },
+            { code: 'promptpay', name: 'พร้อมเพย์', css: 'th-promptpay', color: '#1c3d6e' }, // Custom handling for PromptPay
+            { code: 'truemoney', name: 'TrueMoney', css: 'th-truemoney', color: '#ff5c00' }  // Custom handling
         ];
 
-        class App {
+        // --- 3. SYSTEM CLASS (CONTROLLER) ---
+        class PayLinkSystem {
             constructor() {
                 this.app = initializeApp(firebaseConfig);
                 this.auth = getAuth(this.app);
                 this.db = getFirestore(this.app);
-                this.knocks = 0;
-                this.currId = null;
+                
+                this.magicCount = 0;
+                this.currentClientId = null;
+                this.modalInstance = null;
+                
+                // Initialize
                 this.init();
+                this.initParticleBackground();
             }
 
+            // --- INITIALIZATION ---
             async init() {
-                const code = new URLSearchParams(window.location.search).get('code');
-                this.hideViews();
-                
-                if(code) this.loadClient(code);
-                else {
-                    onAuthStateChanged(this.auth, u => {
-                        if(u && u.email === ADMIN_EMAIL) this.loadAdmin(u);
-                        else {
-                             // Show placeholder for normal user without code
-                             this.show('view-client');
-                             document.getElementById('client-name').innerText = "Welcome";
-                             document.getElementById('state-active').innerHTML = '<p class="text-center text-white-50">Please use valid link</p>';
-                        }
-                    });
-                }
-            }
+                // Remove loader
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 800);
 
-            hideViews() { document.querySelectorAll('section').forEach(e => e.classList.remove('active')); }
-            show(id) { this.hideViews(); document.getElementById(id).classList.add('active'); }
+                const urlParams = new URLSearchParams(window.location.search);
+                const code = urlParams.get('code');
 
-            // --- CLIENT LOGIC ---
-            async loadClient(code) {
-                const snap = await getDocs(query(collection(this.db,"clients"), where("code","==",code)));
-                if(snap.empty) return Swal.fire('Error','Link Invalid','error');
-
-                const d = snap.docs[0].data();
-                document.getElementById('client-name').innerText = d.name;
-                
-                // Get Config for Links
-                const confSnap = await getDoc(doc(this.db,"system_config","main"));
-                const contactLink = confSnap.exists() ? (confSnap.data().fbLink || '#') : '#';
-
-                // Check Expire
-                if(Date.now() > d.expireAt) {
-                    this.show('view-client');
-                    document.getElementById('state-active').classList.add('d-none');
-                    document.getElementById('state-expired').classList.remove('d-none');
-                    document.getElementById('btn-renew').href = contactLink;
+                // Route Logic
+                if (code) {
+                    await this.loadClientView(code);
                 } else {
-                    this.show('view-client');
-                    document.getElementById('state-expired').classList.add('d-none');
-                    document.getElementById('state-active').classList.remove('d-none');
-                    
-                    document.getElementById('btn-contact-main').href = contactLink;
-                    document.getElementById('btn-upsell-link').href = contactLink;
-                    
-                    this.renderBanks(snap.docs[0].id);
+                    this.checkAdminSession();
                 }
             }
 
-            renderBanks(cid) {
-                const list = document.getElementById('bank-list');
-                onSnapshot(query(collection(this.db,"bank_accounts"), where("clientId","==",cid)), snap => {
-                    list.innerHTML = '';
-                    if(snap.empty) { list.innerHTML = '<div class="text-center text-white-50 my-4">ยังไม่ระบุบัญชี</div>'; return; }
+            goto(viewId) {
+                document.querySelectorAll('section').forEach(el => el.classList.remove('active-view'));
+                document.getElementById(viewId).classList.add('active-view');
+            }
+
+            // --- CLIENT LOGIC (CRITICAL FIX: ASYNC/AWAIT) ---
+            async loadClientView(code) {
+                try {
+                    // 1. Get Client Data
+                    const q = query(collection(this.db, "clients"), where("code", "==", code));
+                    const snapshot = await getDocs(q);
+
+                    if (snapshot.empty) {
+                        Swal.fire({icon: 'error', title: 'ไม่พบข้อมูล', text: 'ลิงก์ไม่ถูกต้อง', background: '#0f172a', color: '#fff'});
+                        return;
+                    }
+
+                    const clientData = snapshot.docs[0].data();
+                    const clientId = snapshot.docs[0].id;
+
+                    // 2. Setup UI
+                    this.goto('view-client');
+                    document.getElementById('client-name-display').innerText = clientData.name;
+
+                    // 3. Load Config (Link)
+                    const configSnap = await getDoc(doc(this.db, "system_config", "main"));
+                    const socialLink = configSnap.exists() ? (configSnap.data().fbLink || '#') : '#';
                     
-                    snap.forEach(d => {
-                        const b = d.data();
-                        const info = BANKS.find(x=>x.id===b.bank) || BANKS[0];
-                        const icon = ICONS[b.bank] || ICONS['kbank'];
+                    // Set all links
+                    document.getElementById('btn-contact-slip').href = socialLink;
+                    document.getElementById('btn-upsell').href = socialLink;
+                    document.getElementById('btn-contact-expired').href = socialLink;
+
+                    // 4. Check Expiration
+                    if (Date.now() > clientData.expireAt) {
+                        document.getElementById('expired-overlay').classList.remove('d-none');
+                        document.getElementById('expired-overlay').classList.add('d-flex');
+                        return; // Stop loading banks
+                    }
+
+                    // 5. Load Banks (Real-time Listener)
+                    this.renderClientBanks(clientId);
+
+                } catch (error) {
+                    console.error("Client Load Error:", error);
+                    Swal.fire('Error', 'System Malfunction', 'error');
+                }
+            }
+
+            renderClientBanks(clientId) {
+                const container = document.getElementById('client-content-area');
+                
+                // Use Snapshot for real-time updates
+                onSnapshot(query(collection(this.db, "bank_accounts"), where("clientId", "==", clientId)), (snap) => {
+                    container.innerHTML = ''; // Clear loading spinner
+                    
+                    if (snap.empty) {
+                        container.innerHTML = '<div class="text-center text-white-50 py-4 border border-secondary border-opacity-25 rounded-3">ยังไม่มีบัญชีธนาคาร</div>';
+                        return;
+                    }
+
+                    snap.forEach(doc => {
+                        const b = doc.data();
+                        const bankInfo = BANKS.find(x => x.code === b.bank) || BANKS[0];
                         
-                        list.innerHTML += `
-                        <div class="bank-item" onclick="app.copy('${b.accNum}')">
-                            <div class="d-flex align-items-center gap-3">
-                                <img src="${icon}" class="bank-logo-img">
+                        // Handle Custom Icons for Wallet/PromptPay if needed, otherwise use CSS
+                        const iconClass = `th ${bankInfo.css}`; 
+                        
+                        const html = `
+                        <div class="bank-card" onclick="sys.copyText('${b.accNum}')">
+                            <div class="d-flex align-items-center">
+                                <div class="bank-icon-box">
+                                    <i class="${iconClass}"></i>
+                                </div>
                                 <div>
-                                    <div class="fw-bold font-monospace fs-5">${b.accNum}</div>
-                                    <div class="small text-white-50">${info.n} ${b.accName ? ' | '+b.accName : ''}</div>
+                                    <div class="fw-bold fs-5 text-white font-monospace">${this.formatBankNum(b.accNum)}</div>
+                                    <div class="d-flex flex-column">
+                                        <span class="small text-white-50">${bankInfo.name}</span>
+                                        ${b.accName ? `<span class="small text-info">${b.accName}</span>` : ''}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="badge bg-white bg-opacity-10 text-white fw-light rounded-pill px-3">Copy</div>
-                        </div>`;
+                            <div class="copy-badge"><i class="far fa-copy me-1"></i> Copy</div>
+                        </div>
+                        `;
+                        container.innerHTML += html;
                     });
                 });
             }
-
-            copy(txt) {
-                navigator.clipboard.writeText(txt);
-                Swal.fire({toast:true, icon:'success', title:'คัดลอกแล้ว', position:'top', showConfirmButton:false, timer:800});
-            }
-
-            secretKnock() { if(++this.knocks >= 5) { this.knocks=0; this.show('view-login'); } }
 
             // --- ADMIN LOGIC ---
-            async login(e) {
-                e.preventDefault();
-                try {
-                    await signInWithEmailAndPassword(this.auth, document.getElementById('log-email').value, document.getElementById('log-pass').value);
-                } catch(err) { Swal.fire('Error', err.message, 'error'); }
+            triggerLogin() {
+                this.magicCount++;
+                if (this.magicCount >= 5) {
+                    this.magicCount = 0;
+                    this.goto('view-login');
+                }
             }
 
-            loadAdmin(u) {
-                this.show('view-dashboard');
-                // Load Settings
-                getDoc(doc(this.db,"system_config","main")).then(d=>{ if(d.exists()) document.getElementById('conf-fb').value=d.data().fbLink||''; });
+            checkAdminSession() {
+                onAuthStateChanged(this.auth, (user) => {
+                    if (user && user.email === ADMIN_EMAIL) {
+                        this.initAdminDashboard(user);
+                    } else {
+                        // If root URL and not admin -> Show generic client view (Placeholder)
+                        if(!window.location.search) {
+                            this.goto('view-client');
+                            document.getElementById('client-name-display').innerText = "Welcome";
+                            document.getElementById('client-content-area').innerHTML = '<div class="text-center text-white-50">Please use your payment link.</div>';
+                        }
+                    }
+                });
+            }
+
+            async handleAdminLogin(e) {
+                e.preventDefault();
+                const em = document.getElementById('admin-email').value;
+                const pw = document.getElementById('admin-pass').value;
+                try {
+                    await signInWithEmailAndPassword(this.auth, em, pw);
+                    // Auth state listener will handle the redirect
+                } catch (err) {
+                    Swal.fire({ icon: 'error', title: 'Login Failed', text: err.message, background: '#1e293b', color: '#fff' });
+                }
+            }
+
+            initAdminDashboard(user) {
+                this.goto('view-dashboard');
                 
-                // Init Clients
-                onSnapshot(query(collection(this.db,"clients"), orderBy("createdAt","desc")), snap => {
-                    const grid = document.getElementById('client-grid'); grid.innerHTML = '';
-                    snap.forEach(d => {
-                        const data = d.data();
-                        const days = Math.ceil((data.expireAt - Date.now())/86400000);
-                        const exp = days <= 0;
-                        grid.innerHTML += `
-                        <div class="col-md-6 col-lg-4 client-card-wrapper">
-                            <div class="glass-card p-3 h-100 position-relative">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <h5 class="fw-bold m-0">${data.name}</h5>
-                                    <span class="badge ${exp?'bg-danger':'bg-success'}">${exp?'Expired':days+' วัน'}</span>
+                // Load Settings
+                getDoc(doc(this.db,"system_config","main")).then(d => {
+                    if(d.exists()) document.getElementById('config-contact-link').value = d.data().fbLink || '';
+                });
+
+                // Prepare Bank Selector in Modal
+                this.renderBankSelector();
+
+                // Listen for Clients
+                this.listenClients();
+            }
+
+            listenClients() {
+                const grid = document.getElementById('client-grid-container');
+                onSnapshot(query(collection(this.db, "clients"), orderBy("createdAt", "desc")), (snap) => {
+                    grid.innerHTML = '';
+                    snap.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const daysLeft = Math.ceil((data.expireAt - Date.now()) / (1000 * 60 * 60 * 24));
+                        const isExpired = daysLeft <= 0;
+                        const clientUrl = `${window.location.origin}${window.location.pathname}?code=${data.code}`;
+
+                        // Generate Card
+                        const div = document.createElement('div');
+                        div.className = 'col-md-6 col-lg-4 client-item';
+                        div.dataset.name = data.name.toLowerCase();
+                        div.innerHTML = `
+                            <div class="glass-panel p-3 h-100 position-relative border ${isExpired ? 'border-danger border-opacity-25' : 'border-secondary border-opacity-10'}">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="fw-bold m-0 text-white text-truncate" style="max-width: 70%;">${data.name}</h5>
+                                    <span class="badge ${isExpired ? 'bg-danger' : 'bg-success'} rounded-pill">
+                                        ${isExpired ? 'Expired' : daysLeft + ' วัน'}
+                                    </span>
                                 </div>
-                                <div class="bg-black bg-opacity-25 rounded p-2 d-flex justify-content-between mb-3 align-items-center">
-                                    <span class="text-info font-monospace small">${data.code}</span>
-                                    <button class="btn btn-sm btn-link text-white-50 p-0" onclick="app.copy('${window.location.origin}?code=${data.code}')"><i class="fas fa-link"></i></button>
+                                
+                                <div class="bg-black bg-opacity-40 p-2 rounded mb-3 d-flex justify-content-between align-items-center">
+                                    <span class="font-monospace text-info small user-select-all">${data.code}</span>
+                                    <button class="btn btn-sm btn-link text-white-50 p-0" onclick="sys.copyText('${clientUrl}')">
+                                        <i class="fas fa-link"></i> Link
+                                    </button>
                                 </div>
+
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-sm btn-primary flex-fill" onclick="app.openModal('${d.id}')">บัญชี</button>
-                                    <button class="btn btn-sm btn-success flex-fill" onclick="app.extend('${d.id}')">+วัน</button>
-                                    <button class="btn btn-sm btn-danger flex-fill" onclick="app.del('${d.id}')"><i class="fas fa-trash"></i></button>
+                                    <button class="btn btn-sm btn-primary flex-fill" onclick="sys.openBankModal('${docSnap.id}', '${data.name}')">
+                                        <i class="fas fa-wallet"></i> บัญชี
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success flex-fill" onclick="sys.extendClient('${docSnap.id}')">
+                                        +วัน
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger flex-fill" onclick="sys.deleteClient('${docSnap.id}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
+                        `;
+                        grid.appendChild(div);
+                    });
+                });
+            }
+
+            // --- ADMIN ACTIONS ---
+            async addClient() {
+                const name = document.getElementById('new-client-name').value;
+                const days = document.getElementById('new-client-days').value;
+                if (!name) return Swal.fire('Error', 'ใส่ชื่อลูกค้าก่อน', 'warning');
+
+                const code = 'P-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+                const expireAt = Date.now() + (parseInt(days) * 24 * 60 * 60 * 1000);
+
+                await addDoc(collection(this.db, "clients"), {
+                    name, code, expireAt, createdAt: Date.now()
+                });
+
+                document.getElementById('new-client-name').value = '';
+                Swal.fire({ toast: true, icon: 'success', title: 'เพิ่มลูกค้าสำเร็จ', position: 'top-end', showConfirmButton: false, timer: 1500 });
+            }
+
+            async deleteClient(id) {
+                const res = await Swal.fire({
+                    title: 'ยืนยันการลบ?', text: 'ไม่สามารถกู้คืนได้', icon: 'warning',
+                    showCancelButton: true, confirmButtonColor: '#d33', background: '#1e293b', color: '#fff'
+                });
+                if (res.isConfirmed) await deleteDoc(doc(this.db, "clients", id));
+            }
+
+            async extendClient(id) {
+                const { value } = await Swal.fire({
+                    title: 'เพิ่มจำนวนวัน', input: 'number', inputValue: 30,
+                    background: '#1e293b', color: '#fff'
+                });
+                if (value) {
+                    const snap = await getDoc(doc(this.db, "clients", id));
+                    const currentExp = snap.data().expireAt;
+                    // Extend from now if expired, or from current exp if active
+                    const base = currentExp < Date.now() ? Date.now() : currentExp;
+                    await updateDoc(doc(this.db, "clients", id), {
+                        expireAt: base + (parseInt(value) * 86400000)
+                    });
+                    Swal.fire({ toast: true, icon: 'success', title: 'ต่ออายุเรียบร้อย', position: 'top-end', showConfirmButton: false, timer: 1000 });
+                }
+            }
+
+            // --- BANK MODAL MANAGEMENT ---
+            renderBankSelector() {
+                const grid = document.getElementById('bank-selector-grid');
+                grid.innerHTML = '';
+                BANKS.forEach(b => {
+                    const div = document.createElement('div');
+                    div.className = 'bank-option rounded border border-secondary border-opacity-25 p-2 cursor-pointer text-center';
+                    div.style.width = '70px';
+                    div.style.cursor = 'pointer';
+                    div.innerHTML = `<i class="th ${b.css} fs-2"></i><div style="font-size:10px;" class="mt-1 text-truncate">${b.name}</div>`;
+                    
+                    div.onclick = () => {
+                        document.querySelectorAll('.bank-option').forEach(el => {
+                            el.style.background = 'transparent'; 
+                            el.style.borderColor = 'rgba(255,255,255,0.1)';
+                        });
+                        div.style.background = 'rgba(79, 70, 229, 0.3)';
+                        div.style.borderColor = '#4f46e5';
+                        document.getElementById('selected-bank-code').value = b.code;
+                    };
+                    grid.appendChild(div);
+                });
+            }
+
+            openBankModal(id, name) {
+                this.currentClientId = id;
+                document.getElementById('modal-client-name').innerText = name;
+                document.getElementById('input-acc-num').value = '';
+                document.getElementById('input-acc-name').value = '';
+                document.getElementById('selected-bank-code').value = '';
+                // Clear selection visual
+                document.querySelectorAll('.bank-option').forEach(el => {
+                    el.style.background = 'transparent';
+                    el.style.borderColor = 'rgba(255,255,255,0.1)';
+                });
+
+                const modalEl = document.getElementById('bankModal');
+                this.modalInstance = new bootstrap.Modal(modalEl);
+                this.modalInstance.show();
+
+                this.listenModalBanks(id);
+            }
+
+            listenModalBanks(clientId) {
+                const list = document.getElementById('modal-bank-list-container');
+                // Realtime inside modal
+                onSnapshot(query(collection(this.db, "bank_accounts"), where("clientId", "==", clientId)), (snap) => {
+                    list.innerHTML = '';
+                    if(snap.empty) {
+                        list.innerHTML = '<div class="text-center text-white-50 mt-3">ไม่มีบัญชี</div>';
+                        return;
+                    }
+                    snap.forEach(docSnap => {
+                        const b = docSnap.data();
+                        const info = BANKS.find(x => x.code === b.bank) || BANKS[0];
+                        list.innerHTML += `
+                        <div class="d-flex justify-content-between align-items-center bg-white bg-opacity-5 p-2 rounded border border-secondary border-opacity-10">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="th ${info.css} fs-3"></i>
+                                <div>
+                                    <div class="small font-monospace">${b.accNum}</div>
+                                    <div class="text-white-50" style="font-size:10px;">${info.name} ${b.accName ? '| '+b.accName : ''}</div>
+                                </div>
+                            </div>
+                            <button onclick="sys.deleteBank('${docSnap.id}')" class="btn btn-sm btn-danger py-0 px-2 rounded-circle">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>`;
                     });
                 });
-
-                // Render Bank Select Options in Modal
-                const sel = document.getElementById('bank-select'); sel.innerHTML='';
-                BANKS.forEach(b => {
-                    sel.innerHTML += `
-                    <div onclick="app.selBank('${b.id}', this)" class="bank-opt rounded p-1 border border-secondary border-opacity-25 cursor-pointer text-center" style="min-width:60px">
-                        <img src="${ICONS[b.id]||ICONS['kbank']}" width="30">
-                        <div style="font-size:9px" class="mt-1">${b.n}</div>
-                    </div>`;
-                });
             }
 
-            // Admin Actions
-            async addClient() {
-                const name = document.getElementById('new-name').value;
-                if(!name) return;
-                const code = 'PAY-'+Math.random().toString(36).substring(2,6).toUpperCase();
-                await addDoc(collection(this.db,"clients"), {
-                    name, code, 
-                    expireAt: Date.now() + (document.getElementById('new-days').value * 86400000),
-                    createdAt: Date.now()
-                });
-                document.getElementById('new-name').value = '';
-                Swal.fire({toast:true, icon:'success', title:'สร้างลูกค้าสำเร็จ'});
-            }
-            
-            async del(id) { if((await Swal.fire({title:'ลบ?',icon:'warning',showCancelButton:true})).isConfirmed) deleteDoc(doc(this.db,"clients",id)); }
-            async extend(id) {
-                const {value} = await Swal.fire({title:'เพิ่มวัน',input:'number',inputValue:30});
-                if(value) {
-                    const s = await getDoc(doc(this.db,"clients",id));
-                    updateDoc(doc(this.db,"clients",id), {expireAt: Math.max(s.data().expireAt,Date.now())+(value*86400000)});
+            async addBankAccount() {
+                const bank = document.getElementById('selected-bank-code').value;
+                const accNum = document.getElementById('input-acc-num').value;
+                const accName = document.getElementById('input-acc-name').value;
+
+                if (!bank || !accNum) {
+                    Swal.fire({ toast: true, icon: 'warning', title: 'เลือกธนาคารและใส่เลขบัญชี', position: 'top' });
+                    return;
                 }
+
+                await addDoc(collection(this.db, "bank_accounts"), {
+                    clientId: this.currentClientId,
+                    bank, accNum, accName: accName || ''
+                });
+
+                document.getElementById('input-acc-num').value = '';
+                document.getElementById('input-acc-name').value = '';
+                Swal.fire({ toast: true, icon: 'success', title: 'เพิ่มแล้ว', position: 'top', showConfirmButton: false, timer: 800 });
             }
-            
-            async saveConf() {
-                await setDoc(doc(this.db,"system_config","main"), {fbLink: document.getElementById('conf-fb').value});
-                Swal.fire('Saved');
+
+            deleteBank(id) { deleteDoc(doc(this.db, "bank_accounts", id)); }
+
+            // --- UTILS & SETTINGS ---
+            async saveConfig() {
+                const link = document.getElementById('config-contact-link').value;
+                await setDoc(doc(this.db, "system_config", "main"), { fbLink: link });
+                Swal.fire({ toast: true, icon: 'success', title: 'บันทึกเรียบร้อย' });
             }
-            
-            // Modal Logic
-            selBank(id, el) {
-                document.querySelectorAll('.bank-opt').forEach(e=>e.classList.remove('bg-primary','bg-opacity-25'));
-                el.classList.add('bg-primary','bg-opacity-25');
-                document.getElementById('sel-bank-id').value = id;
-            }
-            
-            openModal(id) {
-                this.currId = id;
-                new bootstrap.Modal(document.getElementById('bankModal')).show();
-                this.loadModalList(id);
-            }
-            
-            loadModalList(id) {
-                const list = document.getElementById('modal-list');
-                onSnapshot(query(collection(this.db,"bank_accounts"), where("clientId","==",id)), snap => {
-                    list.innerHTML = '';
-                    snap.forEach(d => {
-                        const b = d.data();
-                        const info = BANKS.find(x=>x.id===b.bank)||BANKS[0];
-                        list.innerHTML += `<div class="d-flex justify-content-between p-2 border-bottom border-white border-opacity-10"><span>${info.n} ${b.accNum}</span><i class="fas fa-times text-danger cursor-pointer" onclick="app.delBank('${d.id}')"></i></div>`;
-                    });
+
+            logout() { signOut(this.auth).then(() => window.location.reload()); }
+
+            copyText(txt) {
+                navigator.clipboard.writeText(txt);
+                Swal.fire({
+                    toast: true, icon: 'success', title: 'คัดลอกเรียบร้อย',
+                    position: 'top', showConfirmButton: false, timer: 1000,
+                    background: '#1e293b', color: '#fff'
                 });
             }
-            
-            async saveBank() {
-                const bank = document.getElementById('sel-bank-id').value;
-                const acc = document.getElementById('inp-acc').value;
-                const name = document.getElementById('inp-name').value;
-                if(bank && acc) {
-                    await addDoc(collection(this.db,"bank_accounts"), { clientId: this.currId, bank, accNum: acc, accName: name });
-                    document.getElementById('inp-acc').value=''; document.getElementById('inp-name').value='';
-                }
-            }
-            delBank(id) { deleteDoc(doc(this.db,"bank_accounts",id)); }
-            
-            tab(t) { 
+
+            formatBankNum(num) { return num; } // Customize formatting if needed
+
+            switchTab(tabId, btn) {
+                document.querySelectorAll('#view-dashboard nav button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
                 document.getElementById('tab-clients').classList.add('d-none');
                 document.getElementById('tab-settings').classList.add('d-none');
-                document.getElementById('tab-'+t).classList.remove('d-none');
+                document.getElementById('tab-' + tabId).classList.remove('d-none');
             }
-            
-            filter() {
-                const v = document.getElementById('search').value.toLowerCase();
-                document.querySelectorAll('.client-card-wrapper').forEach(e => e.style.display = e.innerText.toLowerCase().includes(v)?'block':'none');
+
+            filterClients() {
+                const term = document.getElementById('search-client').value.toLowerCase();
+                document.querySelectorAll('.client-item').forEach(el => {
+                    const name = el.dataset.name;
+                    el.style.display = name.includes(term) ? 'block' : 'none';
+                });
             }
-            logout() { signOut(this.auth).then(()=>window.location.reload()); }
+
+            // --- PARTICLE BACKGROUND ENGINE (VISUALS) ---
+            initParticleBackground() {
+                const canvas = document.getElementById('particle-canvas');
+                const ctx = canvas.getContext('2d');
+                let particles = [];
+                
+                const resize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                };
+                window.addEventListener('resize', resize);
+                resize();
+
+                class Particle {
+                    constructor() {
+                        this.x = Math.random() * canvas.width;
+                        this.y = Math.random() * canvas.height;
+                        this.size = Math.random() * 2;
+                        this.speedX = Math.random() * 0.5 - 0.25;
+                        this.speedY = Math.random() * 0.5 - 0.25;
+                        this.opacity = Math.random() * 0.5;
+                    }
+                    update() {
+                        this.x += this.speedX;
+                        this.y += this.speedY;
+                        if (this.x > canvas.width) this.x = 0;
+                        if (this.x < 0) this.x = canvas.width;
+                        if (this.y > canvas.height) this.y = 0;
+                        if (this.y < 0) this.y = canvas.height;
+                    }
+                    draw() {
+                        ctx.fillStyle = `rgba(148, 163, 184, ${this.opacity})`;
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                for(let i=0; i<60; i++) particles.push(new Particle());
+
+                const animate = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles.forEach(p => { p.update(); p.draw(); });
+                    requestAnimationFrame(animate);
+                };
+                animate();
+            }
         }
 
-        window.app = new App();
+        // --- START SYSTEM ---
+        window.sys = new PayLinkSystem();
     </script>
 </body>
 </html>
